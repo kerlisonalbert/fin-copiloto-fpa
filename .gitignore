@@ -14,3 +14,6 @@ venv/
 dados/reais/
 
 .pytest_cache/
+
+# capturas geradas em runtime (ficam no workspace do agente)
+relatorios/

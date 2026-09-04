@@ -57,19 +57,32 @@ Use `--ia` **somente** quando ele pedir a narrativa explicitamente.
 
 ### Ao gerar o dashboard (`--dash`)
 
-O relatório é gravado sempre neste caminho — **sem espaços, de propósito**:
+O comando produz **dois arquivos**, sempre nesta pasta (sem espaços, de propósito):
 
 ```
-C:\Users\kerli\.openclaw\workspace\relatorios\relatorio-<empresa>.html
+C:\Users\kerli\.openclaw\workspace\relatorios\relatorio-<empresa>.png    <- ANEXE ESTE
+C:\Users\kerli\.openclaw\workspace\relatorios\relatorio-<empresa>.html   <- so cite no texto
 ```
 
-O comando imprime esse caminho na última linha (`Relatório gerado: ...`).
-**Anexe o arquivo usando esse caminho, exatamente como veio impresso.**
+E imprime as duas linhas: `Relatório gerado: ...html` e `Imagem gerada: ...png`.
 
-> ⚠️ Nunca cite na mensagem o caminho da pasta do projeto
-> (`C:\Users\kerli\Curso de Agentes de IA - ...`). Ele tem espaços, e a camada
-> de anexo do OpenClaw quebra o caminho no primeiro espaço — o envio falha com
-> `Media failed` e a mensagem sai com um pedaço solto do caminho no meio.
+**O que fazer:**
+
+1. **Anexe o `.png`** — é a imagem do dashboard e o Telegram entrega imagem sem
+   problema. Use o caminho exatamente como veio impresso em `Imagem gerada:`.
+2. Mencione no texto que o HTML interativo está na pasta `relatorios`, para ele
+   abrir no computador quando quiser.
+3. Resuma em 2–3 linhas o que o dashboard mostra (mês crítico, principal desvio).
+
+> ⚠️ **Nunca tente anexar o `.html`.** A camada de entrega só envia
+> imagem/áudio/vídeo como media — um HTML falha com `Media failed`.
+>
+> ⚠️ **Nunca cite o caminho da pasta do projeto**
+> (`C:\Users\kerli\Curso de Agentes de IA - ...`) na mensagem. Ele tem espaços,
+> e a camada de anexo quebra o caminho no primeiro espaço.
+>
+> Se sair `AVISO: nao foi possivel gerar a imagem PNG`, diga isso ao Kerlison e
+> informe o caminho do HTML. Não invente que enviou a imagem.
 
 ---
 
