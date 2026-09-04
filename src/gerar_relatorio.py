@@ -362,9 +362,16 @@ def main():
     dre = motor.carregar_dre(a.dre); bal = motor.carregar_dre(a.balanco)
     sm = saas_mod.metricas(saas_mod.carregar(a.saas)) if a.saas else None
     doc = gerar_html(dre, bal, a.materialidade, saas_metrics=sm)
-    saida = a.saida or f"exemplos/relatorio-{Path(a.dre).stem.replace('dre-','')}.html"
-    Path(saida).parent.mkdir(parents=True, exist_ok=True)
-    Path(saida).write_text(doc, encoding="utf-8")
+    # A saída é ancorada na PASTA DO PROJETO, não na pasta de onde o comando foi
+    # chamado. Sem isso, um agente que roda o script de outro diretório espalha
+    # relatórios pelo disco — e o caminho relativo que ele informa não resolve.
+    dre_path = Path(a.dre).resolve()
+    raiz = dre_path.parent.parent if dre_path.parent.name == "dados" else dre_path.parent
+    nome = f"relatorio-{dre_path.stem.replace('dre-', '')}.html"
+    saida = (Path(a.saida).resolve() if a.saida else (raiz / "exemplos" / nome))
+    saida.parent.mkdir(parents=True, exist_ok=True)
+    saida.write_text(doc, encoding="utf-8")
+    # Caminho ABSOLUTO: é o que o agente precisa para anexar o arquivo no chat.
     print(f"Relatório gerado: {saida}")
 
 

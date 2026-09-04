@@ -1,0 +1,4 @@
+# Dependencias de DESENVOLVIMENTO (nao sao necessarias para usar a ferramenta).
+# Instale com:  python -m pip install -r requirements-dev.txt
+-r requirements.txt
+pytest>=8.0

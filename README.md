@@ -72,6 +72,8 @@ python src/copiloto.py dados/dre-fluxodata.csv --offline
 # dashboard HTML (abre exemplos/relatorio-fluxodata.html):
 python src/gerar_relatorio.py dados/dre-fluxodata.csv dados/balanco-fluxodata.csv --saas dados/saas-fluxodata.csv
 
+# para rodar os testes, instale tambem as dependencias de desenvolvimento:
+python -m pip install -r requirements-dev.txt
 python -m pytest                                 # roda os 11 testes
 ```
 

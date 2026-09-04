@@ -52,6 +52,19 @@ Use `--ia` **somente** quando ele pedir a narrativa explicitamente.
 3. Destaque o **mês crítico** e o **maior desvio desfavorável** primeiro.
 4. Ofereça o dashboard (`--dash`) se a conversa pedir mais profundidade.
 
+### Ao gerar o dashboard (`--dash`)
+
+O comando imprime na última linha:
+
+```
+Relatório gerado: C:\Users\kerli\...\exemplos\relatorio-<empresa>.html
+```
+
+Use **esse caminho absoluto, exatamente como veio impresso**, para anexar o
+arquivo no chat. Nunca reescreva o caminho de cabeça nem use caminho relativo
+(`exemplos/...`) — o envio de mídia falha, porque a camada de anexo não sabe de
+qual pasta o comando foi executado.
+
 ---
 
 ## Regras inegociáveis ao usar esta ferramenta
