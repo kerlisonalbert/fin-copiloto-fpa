@@ -54,8 +54,21 @@ agente entrar em laço e chamar a ferramenta dez vezes, o custo continua zero.
 3. Ajuste o caminho do projeto dentro dele.
 4. `openclaw gateway restart` — o agente lê o arquivo ao iniciar a sessão.
 
-### Armadilha conhecida (Windows/PowerShell)
+### Três armadilhas conhecidas (Windows/PowerShell)
 
-Chamar um caminho entre aspas **sem o operador `&`** faz o PowerShell tratá-lo
-como texto, não como comando, e a execução retorna `exitCode 1`. Por isso o
-`TOOLS.md` documenta a linha de chamada completa, com o `&` no início.
+Todas apareceram na prática e estão documentadas no `TOOLS.md` para o agente
+não repeti-las:
+
+1. **Caminho entre aspas sem o operador `&`** — o PowerShell trata como texto,
+   não como comando. Retorna `exitCode 1`.
+2. **`cd ... && comando`** — o Windows PowerShell 5.1 **não suporta `&&`**
+   (erro: `token '&&'`). Por isso o `oraculo.cmd` resolve os próprios caminhos:
+   pode ser chamado de qualquer pasta, em uma linha só.
+3. **Caminho com espaços no anexo** — a camada de entrega do OpenClaw quebra o
+   caminho no primeiro espaço ao tentar anexar o arquivo (`Media failed`, com um
+   pedaço do caminho vazando no texto da mensagem). Solução: o dashboard é
+   gravado em `%USERPROFILE%\.openclaw\workspace\relatorios\` — **sem espaços** —
+   e uma cópia vai para `exemplos/` do repositório.
+
+> Lição transversal: quando a ferramenta é frágil, conserte a **ferramenta**.
+> Instruir o agente a "tomar cuidado" funciona hoje e falha amanhã.

@@ -25,6 +25,9 @@ fluxo de caixa (DFC), métricas SaaS e um dashboard HTML.
 > 2. As **aspas** são obrigatórias — o caminho tem espaços.
 > 3. Use o caminho **absoluto** começando em `C:\Users\kerli`. Não use `~` nem
 >    `%USERPROFILE%`: dependendo do shell eles não são expandidos.
+> 4. **Não use `cd` nem `&&`.** Este Windows roda PowerShell 5.1, que **não
+>    entende `&&`** (erro: `token '&&'`). Rode a linha única acima, direto.
+>    O `oraculo.cmd` resolve os caminhos sozinho — não precisa entrar na pasta.
 
 Troque `fluxodata` pela empresa e acrescente a flag conforme o pedido:
 
@@ -54,16 +57,19 @@ Use `--ia` **somente** quando ele pedir a narrativa explicitamente.
 
 ### Ao gerar o dashboard (`--dash`)
 
-O comando imprime na última linha:
+O relatório é gravado sempre neste caminho — **sem espaços, de propósito**:
 
 ```
-Relatório gerado: C:\Users\kerli\...\exemplos\relatorio-<empresa>.html
+C:\Users\kerli\.openclaw\workspace\relatorios\relatorio-<empresa>.html
 ```
 
-Use **esse caminho absoluto, exatamente como veio impresso**, para anexar o
-arquivo no chat. Nunca reescreva o caminho de cabeça nem use caminho relativo
-(`exemplos/...`) — o envio de mídia falha, porque a camada de anexo não sabe de
-qual pasta o comando foi executado.
+O comando imprime esse caminho na última linha (`Relatório gerado: ...`).
+**Anexe o arquivo usando esse caminho, exatamente como veio impresso.**
+
+> ⚠️ Nunca cite na mensagem o caminho da pasta do projeto
+> (`C:\Users\kerli\Curso de Agentes de IA - ...`). Ele tem espaços, e a camada
+> de anexo do OpenClaw quebra o caminho no primeiro espaço — o envio falha com
+> `Media failed` e a mensagem sai com um pedaço solto do caminho no meio.
 
 ---
 
