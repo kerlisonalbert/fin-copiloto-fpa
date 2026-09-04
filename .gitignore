@@ -1,0 +1,16 @@
+# Segredos — NUNCA subir
+.env
+*.key
+*.pem
+credenciais*
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Dados reais (só sintéticos entram no repo)
+dados/reais/
+
+.pytest_cache/

@@ -1,0 +1,104 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Relatório FP&A — FluxoData</title>
+<style>
+  :root {
+    --bg:#f5f7fa; --surface:#ffffff; --surface2:#fbfcfe; --ink:#16202e; --muted:#5b6b80;
+    --border:#e4e9f0; --accent:#215f9a; --plan:#9aa8bb; --serie-b:#0d8a8a;
+    --bom:#1f8a4c; --atencao:#c98a10; --critico:#c0392b; --crit-bg:#fbeceb;
+    --shadow:0 1px 2px rgba(20,32,46,.04), 0 10px 28px rgba(20,32,46,.07);
+  }
+  @media (prefers-color-scheme:dark){ :root{
+    --bg:#0e1620; --surface:#172232; --surface2:#141d2b; --ink:#e7eef7; --muted:#93a3b8;
+    --border:#25334a; --accent:#5ea0da; --plan:#5f7186; --serie-b:#43b5b5;
+    --bom:#3fca77; --atencao:#e4b64e; --critico:#e2695a; --crit-bg:#2a1a19;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 12px 30px rgba(0,0,0,.4);
+  }}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",system-ui,sans-serif;line-height:1.5}
+  .wrap{max-width:960px;margin:0 auto;padding:32px 20px 56px}
+  .eyebrow{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700}
+  h1{font-size:1.7rem;margin:.3em 0 .1em} .sub{color:var(--muted);font-size:.95rem;margin-bottom:22px}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin:18px 0}
+  .tile{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:15px 17px;box-shadow:var(--shadow)}
+  .tile-lab{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+  .tile-val{font-size:1.45rem;font-weight:700;margin:.12em 0;font-variant-numeric:tabular-nums}
+  .tile-sub{font-size:.8rem;color:var(--muted)}
+  .tile.critico{border-color:var(--critico);background:var(--crit-bg)} .tile.critico .tile-val,.tile.ruim .tile-val{color:var(--critico)}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 22px;box-shadow:var(--shadow);margin:18px 0}
+  .card h2{font-size:1.05rem;margin:0 0 4px} .card .hint{color:var(--muted);font-size:.82rem;margin:0 0 14px}
+  /* painel de indicadores */
+  .indic-group{margin-bottom:16px} .indic-group:last-child{margin-bottom:0}
+  .indic-group h3{font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 8px;font-weight:700}
+  .indic-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px}
+  .cell{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:9px 11px}
+  .cell .cl{font-size:.82rem;color:var(--muted);flex:1}
+  .cell .cv{font-size:.95rem;font-weight:700;font-variant-numeric:tabular-nums}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--muted);flex:none}
+  .dot.bom{background:var(--bom)} .dot.atencao{background:var(--atencao)} .dot.critico{background:var(--critico)}
+  .chart{width:100%;height:auto} .grid{stroke:var(--border);stroke-width:1}
+  .ylab{fill:var(--muted);font-size:11px;text-anchor:end} .xlab{fill:var(--muted);font-size:11px;text-anchor:middle}
+  .line-orc{fill:none;stroke:var(--plan);stroke-width:2;stroke-dasharray:5 4} .line-real{fill:none;stroke:var(--accent);stroke-width:2.5}
+  .dot-real{fill:var(--accent)} .dot-crit{fill:var(--critico);stroke:var(--surface);stroke-width:2}
+  .annot{fill:var(--critico);font-size:11px;font-weight:700;text-anchor:middle}
+  .wf-up{fill:var(--bom)} .wf-down{fill:var(--critico)} .wf-sub{fill:var(--accent)} .wf-tot{fill:var(--ink)}
+  .wf-lab{fill:var(--muted);font-size:10.5px;text-anchor:middle}
+  .wf-val{fill:var(--ink);font-size:10.5px;font-weight:700;text-anchor:middle;font-variant-numeric:tabular-nums}
+  .line-bruta{fill:none;stroke:var(--serie-b);stroke-width:2;stroke-dasharray:5 4}
+  .lab-real{fill:var(--accent);font-size:11px;font-weight:700} .lab-bruta{fill:var(--serie-b);font-size:11px;font-weight:700}
+  .legend{display:flex;gap:16px;font-size:.8rem;color:var(--muted);margin-top:8px} .legend span{display:inline-flex;align-items:center;gap:6px}
+  .swatch{width:15px;height:3px;border-radius:2px;display:inline-block}
+  table{width:100%;border-collapse:collapse;font-size:.9rem}
+  th,td{padding:8px 10px;border-bottom:1px solid var(--border);text-align:left}
+  th{font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+  td.num{text-align:right;font-variant-numeric:tabular-nums} td.neg{color:var(--critico);font-weight:600;text-align:right}
+  .narr{font-size:.94rem}
+  footer{margin-top:22px;padding-top:16px;border-top:1px solid var(--border);color:var(--muted);font-size:.8rem}
+  .selo{display:inline-block;background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:.2em .7em;font-size:.72rem;color:var(--muted)}
+</style></head><body><div class="wrap">
+  <div class="eyebrow">Oráculo · Copiloto de FP&amp;A</div>
+  <h1>Relatório de Desempenho — FluxoData</h1>
+  <div class="sub">SaaS / Tech · período 2025-01 a 2025-12 · mês crítico <b>2025-09</b> · indicadores em 2025-12</div>
+
+  <div class="tiles"><div class="tile "><div class="tile-lab">Receita Líquida</div><div class="tile-val">R$ 909 mil</div><div class="tile-sub">-13.8% vs orçado</div></div><div class="tile "><div class="tile-lab">CMV (custo)</div><div class="tile-val">R$ 212 mil</div><div class="tile-sub">+0.4% vs orçado</div></div><div class="tile critico"><div class="tile-lab">EBITDA</div><div class="tile-val">R$ 358 mil</div><div class="tile-sub">-34.5% vs orçado</div></div><div class="tile critico"><div class="tile-lab">Margem EBITDA</div><div class="tile-val">39.3%</div><div class="tile-sub">plano: 51.8%</div></div></div>
+
+  <div class="card"><h2>Painel de indicadores</h2>
+    <p class="hint">Semáforo: <span style="color:var(--bom)">●</span> bom · <span style="color:var(--atencao)">●</span> atenção · <span style="color:var(--critico)">●</span> crítico. (Ano 2025; balanço em 2025-12.)</p>
+    <div class="indic-group"><h3>Rentabilidade</h3><div class="indic-grid"><div class="cell"><span class="dot "></span><span class="cl">Margem bruta</span><span class="cv">79.9%</span></div><div class="cell"><span class="dot "></span><span class="cl">Margem EBITDA</span><span class="cv">50.7%</span></div><div class="cell"><span class="dot "></span><span class="cl">Margem líquida</span><span class="cv">31.1%</span></div><div class="cell"><span class="dot bom"></span><span class="cl">ROE</span><span class="cv">61.3%</span></div><div class="cell"><span class="dot bom"></span><span class="cl">ROIC</span><span class="cv">82.8%</span></div><div class="cell"><span class="dot "></span><span class="cl">ROA</span><span class="cv">49.6%</span></div><div class="cell"><span class="dot "></span><span class="cl">Giro do ativo</span><span class="cv">1.59x</span></div><div class="cell"><span class="dot bom"></span><span class="cl">EVA</span><span class="cv">R$ 3,26 mi</span></div></div></div><div class="indic-group"><h3>Liquidez</h3><div class="indic-grid"><div class="cell"><span class="dot bom"></span><span class="cl">Liquidez corrente</span><span class="cv">5.98x</span></div><div class="cell"><span class="dot bom"></span><span class="cl">Liquidez seca</span><span class="cv">5.95x</span></div><div class="cell"><span class="dot bom"></span><span class="cl">Liquidez geral</span><span class="cv">2.66x</span></div><div class="cell"><span class="dot "></span><span class="cl">Liquidez imediata</span><span class="cv">3.96x</span></div></div></div><div class="indic-group"><h3>Endividamento / Alavancagem</h3><div class="indic-grid"><div class="cell"><span class="dot bom"></span><span class="cl">Dív. Líq / EBITDA</span><span class="cv">-0.24x</span></div><div class="cell"><span class="dot bom"></span><span class="cl">Dívida / PL</span><span class="cv">0.18x</span></div><div class="cell"><span class="dot bom"></span><span class="cl">Cobertura de juros</span><span class="cv">31.59x</span></div><div class="cell"><span class="dot "></span><span class="cl">% no curto prazo</span><span class="cv">27.3%</span></div></div></div><div class="indic-group"><h3>Capital de giro (Fleuriet)</h3><div class="indic-grid"><div class="cell"><span class="dot "></span><span class="cl">Ciclo financeiro</span><span class="cv">6d</span></div><div class="cell"><span class="dot "></span><span class="cl">PMR / PME / PMP</span><span class="cv">32/2/28d</span></div><div class="cell"><span class="dot "></span><span class="cl">NCG</span><span class="cv">R$ 952 mil</span></div><div class="cell"><span class="dot bom"></span><span class="cl">Tesouraria (Fleuriet)</span><span class="cv">R$ 2,23 mi</span></div></div></div><div class="indic-group"><h3>Solvência</h3><div class="indic-grid"><div class="cell"><span class="dot bom"></span><span class="cl">Kanitz (insolvência)</span><span class="cv">19.13</span></div><div class="cell"><span class="dot bom"></span><span class="cl">Altman Z&#x27; (fechada)</span><span class="cv">6.50</span></div></div></div>
+  </div>
+
+  <div class="card"><h2>Métricas SaaS</h2><p class="hint">Unit economics de receita recorrente. Semáforo pelas metas de mercado (LTV/CAC ≥ 3, payback ≤ 12m, churn ≤ 3%, NRR ≥ 100%).</p><div class="indic-grid"><div class="cell"><span class="dot "></span><span class="cl">Clientes</span><span class="cv">1.884</span></div><div class="cell"><span class="dot "></span><span class="cl">MRR</span><span class="cv">R$ 1,43 mi</span></div><div class="cell"><span class="dot "></span><span class="cl">ARR</span><span class="cv">R$ 17,20 mi</span></div><div class="cell"><span class="dot "></span><span class="cl">ARPA (R$/cliente)</span><span class="cv">R$ 761</span></div><div class="cell"><span class="dot "></span><span class="cl">CAC</span><span class="cv">R$ 2048</span></div><div class="cell"><span class="dot "></span><span class="cl">LTV</span><span class="cv">R$ 22 mil</span></div><div class="cell"><span class="dot bom"></span><span class="cl">LTV / CAC</span><span class="cv">11.0x</span></div><div class="cell"><span class="dot bom"></span><span class="cl">Payback (meses)</span><span class="cv">3.4</span></div><div class="cell"><span class="dot bom"></span><span class="cl">Churn mensal</span><span class="cv">2.7%</span></div><div class="cell"><span class="dot "></span><span class="cl">Churn anual</span><span class="cv">28.1%</span></div><div class="cell"><span class="dot atencao"></span><span class="cl">NRR (anual)</span><span class="cv">91.8%</span></div><div class="cell"><span class="dot "></span><span class="cl">Pico de churn</span><span class="cv">2025-09</span></div></div></div>
+
+  <div class="card"><h2>EBITDA — Orçado vs Realizado</h2>
+    <p class="hint">Linha cheia = realizado; tracejada = orçado; ponto vermelho = mês crítico.</p>
+    <svg viewBox='0 0 760 300' class='chart' role='img' aria-label='EBITDA orçado vs realizado'><line x1='64' y1='258.0' x2='736' y2='258.0' class='grid'/><text x='54' y='262.0' class='ylab'>R$ 0.0M</text><line x1='64' y1='199.0' x2='736' y2='199.0' class='grid'/><text x='54' y='203.0' class='ylab'>R$ 0.2M</text><line x1='64' y1='140.0' x2='736' y2='140.0' class='grid'/><text x='54' y='144.0' class='ylab'>R$ 0.3M</text><line x1='64' y1='81.0' x2='736' y2='81.0' class='grid'/><text x='54' y='85.0' class='ylab'>R$ 0.5M</text><line x1='64' y1='22.0' x2='736' y2='22.0' class='grid'/><text x='54' y='26.0' class='ylab'>R$ 0.7M</text><text x='64.0' y='286' class='xlab'>01</text><text x='186.2' y='286' class='xlab'>03</text><text x='308.4' y='286' class='xlab'>05</text><text x='430.5' y='286' class='xlab'>07</text><text x='552.7' y='286' class='xlab'>09</text><text x='674.9' y='286' class='xlab'>11</text><text x='736.0' y='286' class='xlab'>12</text><path d='M64.0 104.5 L125.1 100.7 L186.2 96.9 L247.3 92.9 L308.4 88.9 L369.5 84.7 L430.5 80.5 L491.6 76.3 L552.7 71.9 L613.8 67.4 L674.9 62.9 L736.0 58.2' class='line-orc'/><path d='M64.0 111.5 L125.1 96.5 L186.2 104.6 L247.3 87.9 L308.4 96.1 L369.5 86.9 L430.5 73.1 L491.6 75.3 L552.7 136.1 L613.8 53.4 L674.9 55.1 L736.0 47.3' class='line-real'/><circle cx='64.0' cy='111.5' r='3.3' class='dot-real'><title>2025-01: R$ 429,707</title></circle><circle cx='125.1' cy='96.5' r='3.3' class='dot-real'><title>2025-02: R$ 473,702</title></circle><circle cx='186.2' cy='104.6' r='3.3' class='dot-real'><title>2025-03: R$ 449,880</title></circle><circle cx='247.3' cy='87.9' r='3.3' class='dot-real'><title>2025-04: R$ 498,868</title></circle><circle cx='308.4' cy='96.1' r='3.3' class='dot-real'><title>2025-05: R$ 474,666</title></circle><circle cx='369.5' cy='86.9' r='3.3' class='dot-real'><title>2025-06: R$ 501,849</title></circle><circle cx='430.5' cy='73.1' r='3.3' class='dot-real'><title>2025-07: R$ 542,337</title></circle><circle cx='491.6' cy='75.3' r='3.3' class='dot-real'><title>2025-08: R$ 535,734</title></circle><circle cx='552.7' cy='136.1' r='5' class='dot-crit'><title>2025-09: R$ 357,596</title></circle><circle cx='613.8' cy='53.4' r='3.3' class='dot-real'><title>2025-10: R$ 599,933</title></circle><circle cx='674.9' cy='55.1' r='3.3' class='dot-real'><title>2025-11: R$ 595,113</title></circle><circle cx='736.0' cy='47.3' r='3.3' class='dot-real'><title>2025-12: R$ 617,916</title></circle><text x='552.7' y='124.1' class='annot'>2025-09</text></svg>
+    <div class="legend"><span><i class="swatch" style="background:var(--accent)"></i>Realizado</span>
+      <span><i class="swatch" style="background:var(--plan)"></i>Orçado</span>
+      <span><i class="swatch" style="background:var(--critico)"></i>Mês crítico</span></div>
+  </div>
+
+  <div class="card"><h2>Margens ao longo do ano</h2>
+    <p class="hint">Margem bruta (tracejada) e margem EBITDA (cheia), realizado, como % da receita.</p>
+    <svg viewBox='0 0 760 260' class='chart' role='img' aria-label='Margens ao longo do ano'><line x1='46' y1='220.0' x2='690' y2='220.0' class='grid'/><text x='38' y='224.0' class='ylab'>0%</text><line x1='46' y1='169.5' x2='690' y2='169.5' class='grid'/><text x='38' y='173.5' class='ylab'>23%</text><line x1='46' y1='119.0' x2='690' y2='119.0' class='grid'/><text x='38' y='123.0' class='ylab'>47%</text><line x1='46' y1='68.5' x2='690' y2='68.5' class='grid'/><text x='38' y='72.5' class='ylab'>70%</text><line x1='46' y1='18.0' x2='690' y2='18.0' class='grid'/><text x='38' y='22.0' class='ylab'>93%</text><text x='46.0' y='247' class='xlab'>01</text><text x='163.1' y='247' class='xlab'>03</text><text x='280.2' y='247' class='xlab'>05</text><text x='397.3' y='247' class='xlab'>07</text><text x='514.4' y='247' class='xlab'>09</text><text x='631.5' y='247' class='xlab'>11</text><text x='690.0' y='247' class='xlab'>12</text><path d='M46.0 47.8 L104.5 45.8 L163.1 48.1 L221.6 45.9 L280.2 46.9 L338.7 47.5 L397.3 44.4 L455.8 46.1 L514.4 53.7 L572.9 44.3 L631.5 45.8 L690.0 47.3' class='line-bruta'/><path d='M46.0 114.6 L104.5 109.5 L163.1 113.3 L221.6 108.3 L280.2 111.5 L338.7 109.7 L397.3 105.9 L455.8 107.8 L514.4 134.7 L572.9 102.5 L631.5 103.9 L690.0 104.9' class='line-real'/><text x='696.0' y='108.9' class='lab-real'>EBITDA 53%</text><text x='696.0' y='51.3' class='lab-bruta'>Bruta 80%</text></svg>
+  </div>
+
+  <div class="card"><h2>Fluxo de Caixa (DFC — método indireto)</h2>
+    <p class="hint">Do lucro líquido ao caixa: FCO R$ 3,74 mi · FCFF R$ 3,45 mi · Δ Caixa R$ 2,33 mi. Barras verdes entram caixa, vermelhas saem; azuis são subtotais.</p>
+    <svg viewBox='0 0 760 290' class='chart' role='img' aria-label='Cascata do fluxo de caixa'><line x1='40' y1='240.0' x2='744' y2='240.0' class='grid'/><rect x='56.7' y='57.0' width='54.6' height='183.0' rx='3' class='wf-tot'><title>Lucro líq.: R$ 3,730,830</title></rect><text x='84.0' y='52.0' class='wf-val'>+3.7</text><text x='84.0' y='276' class='wf-lab'>Lucro líq.</text><rect x='144.7' y='45.3' width='54.6' height='11.8' rx='3' class='wf-up'><title>+ D&A: R$ 239,727</title></rect><text x='172.0' y='40.3' class='wf-val'>+0.2</text><text x='172.0' y='276' class='wf-lab'>+ D&A</text><rect x='232.7' y='45.3' width='54.6' height='11.4' rx='3' class='wf-down'><title>± Cap.giro: R$ -233,445</title></rect><text x='260.0' y='40.3' class='wf-val'>-0.2</text><text x='260.0' y='276' class='wf-lab'>± Cap.giro</text><rect x='320.7' y='56.7' width='54.6' height='183.3' rx='3' class='wf-sub'><title>= FCO: R$ 3,737,112</title></rect><text x='348.0' y='51.7' class='wf-val'>+3.7</text><text x='348.0' y='276' class='wf-lab'>= FCO</text><rect x='408.7' y='56.7' width='54.6' height='14.1' rx='3' class='wf-down'><title>− CAPEX: R$ -287,673</title></rect><text x='436.0' y='51.7' class='wf-val'>-0.3</text><text x='436.0' y='276' class='wf-lab'>− CAPEX</text><rect x='496.7' y='70.8' width='54.6' height='169.2' rx='3' class='wf-sub'><title>= FCFF: R$ 3,449,439</title></rect><text x='524.0' y='65.8' class='wf-val'>+3.4</text><text x='524.0' y='276' class='wf-lab'>= FCFF</text><rect x='584.7' y='70.8' width='54.6' height='54.9' rx='3' class='wf-down'><title>− Divid.: R$ -1,119,249</title></rect><text x='612.0' y='65.8' class='wf-val'>-1.1</text><text x='612.0' y='276' class='wf-lab'>− Divid.</text><rect x='672.7' y='125.7' width='54.6' height='114.3' rx='3' class='wf-tot'><title>Δ Caixa: R$ 2,330,190</title></rect><text x='700.0' y='120.7' class='wf-val'>+2.3</text><text x='700.0' y='276' class='wf-lab'>Δ Caixa</text></svg>
+  </div>
+
+  <div class="card"><h2>Análise vertical — DRE do mês crítico (2025-09)</h2>
+    <p class="hint">Cada linha como % da Receita Líquida (realizado).</p>
+    <table><thead><tr><th>Conta</th><th>Realizado</th><th>% da RL</th></tr></thead><tbody><tr><td>Receita Líquida</td><td class='num'>R$ 908.959</td><td class='num'>100.0%</td></tr><tr><td>CMV</td><td class='num'>R$ 211.655</td><td class='num'>23.3%</td></tr><tr><td>Lucro Bruto</td><td class='num'>R$ 697.304</td><td class='num'>76.7%</td></tr><tr><td>Despesas Comerciais</td><td class='num'>R$ 228.773</td><td class='num'>25.2%</td></tr><tr><td>Despesas Administrativas</td><td class='num'>R$ 110.936</td><td class='num'>12.2%</td></tr><tr><td>EBITDA</td><td class='num'>R$ 357.596</td><td class='num'>39.3%</td></tr></tbody></table>
+  </div>
+
+  <div class="card"><h2>Achados — desvios materiais desfavoráveis</h2>
+    <p class="hint">Somente desvios acima de 5% (materialidade).</p>
+    <table><thead><tr><th>Competência</th><th>Conta</th><th>Orçado</th><th>Realizado</th><th>Desvio</th></tr></thead><tbody><tr><td>2025-09</td><td>EBITDA</td><td class='num'>R$ 545.786</td><td class='num'>R$ 357.596</td><td class='num neg'>-34.5%</td></tr><tr><td>2025-09</td><td>Despesas Comerciais</td><td class='num'>R$ 189.809</td><td class='num'>R$ 228.773</td><td class='num neg'>+20.5%</td></tr><tr><td>2025-09</td><td>Lucro Bruto</td><td class='num'>R$ 843.595</td><td class='num'>R$ 697.304</td><td class='num neg'>-17.3%</td></tr><tr><td>2025-09</td><td>Receita Líquida</td><td class='num'>R$ 1.054.493</td><td class='num'>R$ 908.959</td><td class='num neg'>-13.8%</td></tr><tr><td>2025-12</td><td>CMV</td><td class='num'>R$ 223.807</td><td class='num'>R$ 236.850</td><td class='num neg'>+5.8%</td></tr></tbody></table>
+  </div>
+
+  <div class="card"><h2>Leitura do Oráculo</h2><p class="narr">ANÁLISE — FluxoData (SaaS / Tech) | período 2025-01 a 2025-12<br><br>Ponto de atenção em 2025-09:<br>  • EBITDA ficou -34.5% abaixo do orçado (R$ 545,786 -&gt; R$ 357,596).<br>  • Despesas Comerciais ficou +20.5% acima do orçado (R$ 189,809 -&gt; R$ 228,773).<br>  • Lucro Bruto ficou -17.3% abaixo do orçado (R$ 843,595 -&gt; R$ 697,304).<br>  • Receita Líquida ficou -13.8% abaixo do orçado (R$ 1,054,493 -&gt; R$ 908,959).<br><br>Margem EBITDA em 2025-09: 39.3% (plano: 51.8%).<br><br>Recomendação: investigar a causa-raiz em 2025-09 e revisar o forecast. (Sinalizados apenas desvios acima de 5%.)<br><br>— Números calculados a partir da planilha (rastreáveis). Não constitui recomendação de investimento.</p></div>
+
+  <footer><span class="selo">Números calculados por código · rastreáveis</span>
+    &nbsp; Dados sintéticos para fins de portfólio. Não constitui recomendação de investimento.</footer>
+</div></body></html>
