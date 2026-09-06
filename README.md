@@ -7,7 +7,14 @@
 ![licença](https://img.shields.io/badge/licença-MIT-blue)
 ![dados](https://img.shields.io/badge/dados-100%25%20sintéticos-orange)
 
-![Dashboard do Oráculo](docs/dashboard-hero.png)
+<p align="center">
+  <img src="docs/demo.gif" width="430" alt="Pergunta no Telegram, o agente executa a análise e devolve o dashboard">
+</p>
+
+<p align="center">
+  <sub><b>Uma pergunta em português no Telegram.</b> O agente executa o motor de análise na máquina,
+  responde com os números que saíram do código e envia o dashboard como imagem.</sub>
+</p>
 
 ## O problema
 
@@ -36,6 +43,19 @@ Cada empresa fictícia esconde um problema realista que o Oráculo descobre sozi
 | Construtora Horizonte | Construção | Estouro no custo do aço (jul) → **EBITDA −74%** no mês |
 | FluxoData | SaaS | **Churn** dispara (set) → receita e NRR caem |
 | Rede BomPreço | Varejo | Volume sobe, mas **margem despenca** (nov) por excesso de desconto |
+
+## O dashboard
+
+![Dashboard do Oráculo](docs/dashboard-hero.png)
+
+Um único arquivo HTML, sem dependência de front-end: os gráficos são SVG escrito à mão.
+Tema claro e escuro (o escuro tem passos próprios da paleta, não é uma inversão),
+tooltip com os valores do mês ao passar o mouse, tabelas ordenáveis e uma **tabela
+equivalente para cada gráfico** — nenhum número existe apenas no tooltip.
+
+A paleta é validada para **separação sob daltonismo**, e o semáforo usa **forma além
+de cor** (● bom · ▲ atenção · ■ crítico): o relatório continua legível impresso em
+preto e branco.
 
 ## 💰 ROI
 
