@@ -163,10 +163,16 @@ def _svg_ebitda(df, mes_critico):
     pontos = "".join(
         f"<circle cx='{X(i):.1f}' cy='{Y(real[i]):.1f}' r='{6 if i==ic else 4.5}' "
         f"class='pt {'pt-crit' if i==ic else ''}'/>" for i in range(n))
-    # rótulo direto seletivo: só o mês crítico e o ponto final de cada série
+    # rótulo direto seletivo: só o mês crítico e o ponto final de cada série.
+    # Se as duas séries terminam quase no mesmo ponto, os rótulos colidem e viram
+    # um borrão — então afasta um do outro mantendo a ordem vertical correta.
+    yr, yo = Y(real[-1]), Y(orc[-1])
+    if abs(yr - yo) < 15:
+        meio = (yr + yo) / 2
+        yr, yo = (meio - 9, meio + 9) if yr <= yo else (meio + 9, meio - 9)
     lbl = (f"<text x='{X(ic):.1f}' y='{Y(real[ic])-14:.1f}' class='annot'>{mes_critico}</text>"
-           f"<text x='{X(n-1)+10:.1f}' y='{Y(real[-1])+4:.1f}' class='dlab s1'>Realizado</text>"
-           f"<text x='{X(n-1)+10:.1f}' y='{Y(orc[-1])+4:.1f}' class='dlab s2'>Orçado</text>")
+           f"<text x='{X(n-1)+10:.1f}' y='{yr+4:.1f}' class='dlab s1'>Realizado</text>"
+           f"<text x='{X(n-1)+10:.1f}' y='{yo+4:.1f}' class='dlab s2'>Orçado</text>")
     dados = json.dumps({
         "x": [X(i) for i in range(n)], "labels": meses,
         "series": [{"nome": "Realizado", "slot": 1, "y": [Y(v) for v in real],
@@ -196,8 +202,12 @@ def _svg_margens(dre):
     grid, X, Y = _eixos(W, H, PL, PR, PT, PB, ymin, ymax, meses, lambda v: f"{v*100:.0f}%")
     path = lambda vs: " ".join(("M" if i == 0 else "L") + f"{X(i):.1f} {Y(v):.1f}" for i, v in enumerate(vs))
     n = len(meses)
-    lbl = (f"<text x='{X(n-1)+10:.1f}' y='{Y(mb[-1])+4:.1f}' class='dlab s3'>Bruta {mb[-1]*100:.0f}%</text>"
-           f"<text x='{X(n-1)+10:.1f}' y='{Y(me[-1])+4:.1f}' class='dlab s1'>EBITDA {me[-1]*100:.0f}%</text>")
+    yb, ye = Y(mb[-1]), Y(me[-1])
+    if abs(yb - ye) < 15:                      # mesma proteção contra colisão
+        meio = (yb + ye) / 2
+        yb, ye = (meio - 9, meio + 9) if yb <= ye else (meio + 9, meio - 9)
+    lbl = (f"<text x='{X(n-1)+10:.1f}' y='{yb+4:.1f}' class='dlab s3'>Bruta {mb[-1]*100:.0f}%</text>"
+           f"<text x='{X(n-1)+10:.1f}' y='{ye+4:.1f}' class='dlab s1'>EBITDA {me[-1]*100:.0f}%</text>")
     dados = json.dumps({
         "x": [X(i) for i in range(n)], "labels": meses,
         "series": [{"nome": "Margem bruta", "slot": 3, "y": [Y(v) for v in mb],
