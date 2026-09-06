@@ -1,0 +1,15 @@
+# Normaliza fim de linha: no repositorio tudo vira LF; no Windows, o Git
+# converte na hora de gravar no disco. Elimina os avisos "LF will be replaced
+# by CRLF" e os diffs falsos em que o arquivo inteiro parece ter mudado.
+* text=auto eol=lf
+
+# Excecao: scripts de lote do Windows PRECISAM de CRLF. Com LF, o cmd.exe pode
+# quebrar em labels e goto.
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+# Binarios: nunca converter.
+*.png binary
+*.jpg binary
+*.xlsx binary
+*.xlsm binary

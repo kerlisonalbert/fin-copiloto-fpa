@@ -1,104 +1,302 @@
 <!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Relatório FP&A — FluxoData</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Oráculo — FluxoData</title>
 <style>
-  :root {
-    --bg:#f5f7fa; --surface:#ffffff; --surface2:#fbfcfe; --ink:#16202e; --muted:#5b6b80;
-    --border:#e4e9f0; --accent:#215f9a; --plan:#9aa8bb; --serie-b:#0d8a8a;
-    --bom:#1f8a4c; --atencao:#c98a10; --critico:#c0392b; --crit-bg:#fbeceb;
-    --shadow:0 1px 2px rgba(20,32,46,.04), 0 10px 28px rgba(20,32,46,.07);
+/* ---- Paleta validada (separação sob daltonismo). Tema claro é a base;
+       o escuro tem passos próprios, não é uma inversão automática. ------- */
+:root{
+  color-scheme: light;
+  --plano:#f3f3f0; --surf:#fcfcfb; --surf2:#f7f7f4;
+  --ink:#0b0b0b; --ink2:#52514e; --muted:#898781;
+  --grid:#e1e0d9; --axis:#c3c2b7; --ring:rgba(11,11,11,.10);
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --neg:#e34948;
+  --bom:#0ca30c; --atencao:#fab219; --critico:#d03b3b;
+  --shadow:0 1px 2px rgba(11,11,11,.05),0 4px 14px rgba(11,11,11,.05);
+}
+@media (prefers-color-scheme: dark){
+  :root:where(:not([data-theme="light"])){
+    color-scheme: dark;
+    --plano:#0d0d0d; --surf:#1a1a19; --surf2:#212120;
+    --ink:#fff; --ink2:#c3c2b7; --muted:#898781;
+    --grid:#2c2c2a; --axis:#383835; --ring:rgba(255,255,255,.10);
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --neg:#e66767;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 14px rgba(0,0,0,.35);
   }
-  @media (prefers-color-scheme:dark){ :root{
-    --bg:#0e1620; --surface:#172232; --surface2:#141d2b; --ink:#e7eef7; --muted:#93a3b8;
-    --border:#25334a; --accent:#5ea0da; --plan:#5f7186; --serie-b:#43b5b5;
-    --bom:#3fca77; --atencao:#e4b64e; --critico:#e2695a; --crit-bg:#2a1a19;
-    --shadow:0 1px 2px rgba(0,0,0,.3), 0 12px 30px rgba(0,0,0,.4);
-  }}
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",system-ui,sans-serif;line-height:1.5}
-  .wrap{max-width:960px;margin:0 auto;padding:32px 20px 56px}
-  .eyebrow{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700}
-  h1{font-size:1.7rem;margin:.3em 0 .1em} .sub{color:var(--muted);font-size:.95rem;margin-bottom:22px}
-  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin:18px 0}
-  .tile{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:15px 17px;box-shadow:var(--shadow)}
-  .tile-lab{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
-  .tile-val{font-size:1.45rem;font-weight:700;margin:.12em 0;font-variant-numeric:tabular-nums}
-  .tile-sub{font-size:.8rem;color:var(--muted)}
-  .tile.critico{border-color:var(--critico);background:var(--crit-bg)} .tile.critico .tile-val,.tile.ruim .tile-val{color:var(--critico)}
-  .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 22px;box-shadow:var(--shadow);margin:18px 0}
-  .card h2{font-size:1.05rem;margin:0 0 4px} .card .hint{color:var(--muted);font-size:.82rem;margin:0 0 14px}
-  /* painel de indicadores */
-  .indic-group{margin-bottom:16px} .indic-group:last-child{margin-bottom:0}
-  .indic-group h3{font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 8px;font-weight:700}
-  .indic-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px}
-  .cell{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:9px 11px}
-  .cell .cl{font-size:.82rem;color:var(--muted);flex:1}
-  .cell .cv{font-size:.95rem;font-weight:700;font-variant-numeric:tabular-nums}
-  .dot{width:9px;height:9px;border-radius:50%;background:var(--muted);flex:none}
-  .dot.bom{background:var(--bom)} .dot.atencao{background:var(--atencao)} .dot.critico{background:var(--critico)}
-  .chart{width:100%;height:auto} .grid{stroke:var(--border);stroke-width:1}
-  .ylab{fill:var(--muted);font-size:11px;text-anchor:end} .xlab{fill:var(--muted);font-size:11px;text-anchor:middle}
-  .line-orc{fill:none;stroke:var(--plan);stroke-width:2;stroke-dasharray:5 4} .line-real{fill:none;stroke:var(--accent);stroke-width:2.5}
-  .dot-real{fill:var(--accent)} .dot-crit{fill:var(--critico);stroke:var(--surface);stroke-width:2}
-  .annot{fill:var(--critico);font-size:11px;font-weight:700;text-anchor:middle}
-  .wf-up{fill:var(--bom)} .wf-down{fill:var(--critico)} .wf-sub{fill:var(--accent)} .wf-tot{fill:var(--ink)}
-  .wf-lab{fill:var(--muted);font-size:10.5px;text-anchor:middle}
-  .wf-val{fill:var(--ink);font-size:10.5px;font-weight:700;text-anchor:middle;font-variant-numeric:tabular-nums}
-  .line-bruta{fill:none;stroke:var(--serie-b);stroke-width:2;stroke-dasharray:5 4}
-  .lab-real{fill:var(--accent);font-size:11px;font-weight:700} .lab-bruta{fill:var(--serie-b);font-size:11px;font-weight:700}
-  .legend{display:flex;gap:16px;font-size:.8rem;color:var(--muted);margin-top:8px} .legend span{display:inline-flex;align-items:center;gap:6px}
-  .swatch{width:15px;height:3px;border-radius:2px;display:inline-block}
-  table{width:100%;border-collapse:collapse;font-size:.9rem}
-  th,td{padding:8px 10px;border-bottom:1px solid var(--border);text-align:left}
-  th{font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
-  td.num{text-align:right;font-variant-numeric:tabular-nums} td.neg{color:var(--critico);font-weight:600;text-align:right}
-  .narr{font-size:.94rem}
-  footer{margin-top:22px;padding-top:16px;border-top:1px solid var(--border);color:var(--muted);font-size:.8rem}
-  .selo{display:inline-block;background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:.2em .7em;font-size:.72rem;color:var(--muted)}
-</style></head><body><div class="wrap">
-  <div class="eyebrow">Oráculo · Copiloto de FP&amp;A</div>
-  <h1>Relatório de Desempenho — FluxoData</h1>
-  <div class="sub">SaaS / Tech · período 2025-01 a 2025-12 · mês crítico <b>2025-09</b> · indicadores em 2025-12</div>
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --plano:#0d0d0d; --surf:#1a1a19; --surf2:#212120;
+  --ink:#fff; --ink2:#c3c2b7; --muted:#898781;
+  --grid:#2c2c2a; --axis:#383835; --ring:rgba(255,255,255,.10);
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --neg:#e66767;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 14px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--plano);color:var(--ink);
+  font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:1160px;margin:0 auto;padding:0 20px 56px}
 
-  <div class="tiles"><div class="tile "><div class="tile-lab">Receita Líquida</div><div class="tile-val">R$ 909 mil</div><div class="tile-sub">-13.8% vs orçado</div></div><div class="tile "><div class="tile-lab">CMV (custo)</div><div class="tile-val">R$ 212 mil</div><div class="tile-sub">+0.4% vs orçado</div></div><div class="tile critico"><div class="tile-lab">EBITDA</div><div class="tile-val">R$ 358 mil</div><div class="tile-sub">-34.5% vs orçado</div></div><div class="tile critico"><div class="tile-lab">Margem EBITDA</div><div class="tile-val">39.3%</div><div class="tile-sub">plano: 51.8%</div></div></div>
+/* ---- topo ---- */
+/* Sem position:sticky de propósito: o relatório é capturado inteiro em PNG
+   para o Telegram, e um cabeçalho fixo se sobrepõe ao conteúdo na captura. */
+.top{background:var(--surf);border-bottom:1px solid var(--ring);margin-bottom:22px}
+.top-in{max-width:1160px;margin:0 auto;padding:16px 20px;display:flex;
+  align-items:flex-end;gap:20px;flex-wrap:wrap}
+.brand{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+h1{font-size:22px;margin:2px 0 3px;font-weight:650;letter-spacing:-.01em}
+.sub{color:var(--ink2);font-size:13px}
+.sub b{color:var(--ink);font-weight:600}
+.top-sp{flex:1}
+.tema{display:flex;gap:2px;background:var(--surf2);border:1px solid var(--ring);
+  border-radius:8px;padding:3px}
+.tema button{border:0;background:none;color:var(--ink2);font:inherit;font-size:12px;
+  padding:5px 10px;border-radius:6px;cursor:pointer}
+.tema button[aria-pressed="true"]{background:var(--surf);color:var(--ink);
+  box-shadow:var(--shadow);font-weight:600}
 
-  <div class="card"><h2>Painel de indicadores</h2>
-    <p class="hint">Semáforo: <span style="color:var(--bom)">●</span> bom · <span style="color:var(--atencao)">●</span> atenção · <span style="color:var(--critico)">●</span> crítico. (Ano 2025; balanço em 2025-12.)</p>
-    <div class="indic-group"><h3>Rentabilidade</h3><div class="indic-grid"><div class="cell"><span class="dot "></span><span class="cl">Margem bruta</span><span class="cv">79.9%</span></div><div class="cell"><span class="dot "></span><span class="cl">Margem EBITDA</span><span class="cv">50.7%</span></div><div class="cell"><span class="dot "></span><span class="cl">Margem líquida</span><span class="cv">31.1%</span></div><div class="cell"><span class="dot bom"></span><span class="cl">ROE</span><span class="cv">61.3%</span></div><div class="cell"><span class="dot bom"></span><span class="cl">ROIC</span><span class="cv">82.8%</span></div><div class="cell"><span class="dot "></span><span class="cl">ROA</span><span class="cv">49.6%</span></div><div class="cell"><span class="dot "></span><span class="cl">Giro do ativo</span><span class="cv">1.59x</span></div><div class="cell"><span class="dot bom"></span><span class="cl">EVA</span><span class="cv">R$ 3,26 mi</span></div></div></div><div class="indic-group"><h3>Liquidez</h3><div class="indic-grid"><div class="cell"><span class="dot bom"></span><span class="cl">Liquidez corrente</span><span class="cv">5.98x</span></div><div class="cell"><span class="dot bom"></span><span class="cl">Liquidez seca</span><span class="cv">5.95x</span></div><div class="cell"><span class="dot bom"></span><span class="cl">Liquidez geral</span><span class="cv">2.66x</span></div><div class="cell"><span class="dot "></span><span class="cl">Liquidez imediata</span><span class="cv">3.96x</span></div></div></div><div class="indic-group"><h3>Endividamento / Alavancagem</h3><div class="indic-grid"><div class="cell"><span class="dot bom"></span><span class="cl">Dív. Líq / EBITDA</span><span class="cv">-0.24x</span></div><div class="cell"><span class="dot bom"></span><span class="cl">Dívida / PL</span><span class="cv">0.18x</span></div><div class="cell"><span class="dot bom"></span><span class="cl">Cobertura de juros</span><span class="cv">31.59x</span></div><div class="cell"><span class="dot "></span><span class="cl">% no curto prazo</span><span class="cv">27.3%</span></div></div></div><div class="indic-group"><h3>Capital de giro (Fleuriet)</h3><div class="indic-grid"><div class="cell"><span class="dot "></span><span class="cl">Ciclo financeiro</span><span class="cv">6d</span></div><div class="cell"><span class="dot "></span><span class="cl">PMR / PME / PMP</span><span class="cv">32/2/28d</span></div><div class="cell"><span class="dot "></span><span class="cl">NCG</span><span class="cv">R$ 952 mil</span></div><div class="cell"><span class="dot bom"></span><span class="cl">Tesouraria (Fleuriet)</span><span class="cv">R$ 2,23 mi</span></div></div></div><div class="indic-group"><h3>Solvência</h3><div class="indic-grid"><div class="cell"><span class="dot bom"></span><span class="cl">Kanitz (insolvência)</span><span class="cv">19.13</span></div><div class="cell"><span class="dot bom"></span><span class="cl">Altman Z&#x27; (fechada)</span><span class="cv">6.50</span></div></div></div>
+/* ---- KPIs ---- */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+  gap:14px;margin-bottom:20px}
+.tile{background:var(--surf);border:1px solid var(--ring);border-radius:12px;
+  padding:15px 17px;box-shadow:var(--shadow)}
+.tile-lab{font-size:11px;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--muted);display:flex;align-items:center;gap:6px}
+.tile-val{font-size:29px;font-weight:660;margin:5px 0 2px;letter-spacing:-.02em}
+.tile-sub{font-size:12px;color:var(--ink2)}
+.tile.critico{border-color:color-mix(in srgb,var(--critico) 45%,var(--ring))}
+.tile.atencao{border-color:color-mix(in srgb,var(--atencao) 45%,var(--ring))}
+
+/* ---- cartões ---- */
+.card{background:var(--surf);border:1px solid var(--ring);border-radius:12px;
+  padding:18px 20px 20px;box-shadow:var(--shadow);margin-bottom:18px}
+.card-h{margin-bottom:14px}
+h2{font-size:15px;margin:0;font-weight:640;letter-spacing:-.005em}
+h3{font-size:10.5px;margin:0 0 7px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);font-weight:600}
+.hint{color:var(--ink2);font-size:12.5px;margin:5px 0 0}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:860px){.cols{grid-template-columns:1fr}}
+
+/* ---- indicadores ---- */
+.grupo{margin-bottom:14px}
+.grid-ind{display:grid;grid-template-columns:repeat(auto-fit,minmax(212px,1fr));gap:7px}
+.cell{display:flex;align-items:center;gap:8px;background:var(--surf2);
+  border:1px solid var(--ring);border-radius:8px;padding:8px 11px}
+.cl{flex:1;color:var(--ink2);font-size:12.5px}
+.cv{font-weight:640;font-variant-numeric:tabular-nums}
+.mk{font-size:10px;line-height:1;width:11px;text-align:center}
+.mk.bom{color:var(--bom)} .mk.atencao{color:var(--atencao)}
+.mk.critico{color:var(--critico)} .mk.vazio{color:var(--axis)}
+.legenda-sem{display:flex;gap:15px;flex-wrap:wrap;color:var(--ink2);
+  font-size:12px;margin-top:12px;padding-top:12px;border-top:1px solid var(--ring)}
+
+/* ---- gráficos ---- */
+.chart-wrap{position:relative}
+.chart{width:100%;height:auto;display:block;overflow:visible}
+.grid{stroke:var(--grid);stroke-width:1}
+.axis{stroke:var(--axis);stroke-width:1}
+.ylab,.xlab{fill:var(--muted);font-size:10.5px;font-variant-numeric:tabular-nums}
+.ylab{text-anchor:end} .xlab{text-anchor:middle}
+.ln{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.ln.s1{stroke:var(--s1)} .ln.s2{stroke:var(--s2)} .ln.s3{stroke:var(--s3)}
+.pt{fill:var(--s1);stroke:var(--surf);stroke-width:2}
+.pt-crit{fill:var(--critico)}
+.annot{fill:var(--critico);font-size:11px;font-weight:650;text-anchor:middle}
+.dlab{font-size:11.5px;font-weight:620;dominant-baseline:middle}
+.dlab.s1{fill:var(--s1)} .dlab.s2{fill:var(--s2)} .dlab.s3{fill:var(--s3)}
+/* Subtotais em cinza neutro nos dois temas: são as barras maiores, e se
+   levarem cor viram o elemento mais alto E mais chamativo, roubando a atenção
+   dos fluxos, que são a informação nova. */
+.wf-pos{fill:var(--s1)} .wf-neg{fill:var(--neg)} .wf-sub{fill:var(--muted)}
+.wf-val{fill:var(--ink2);font-size:10.5px;text-anchor:middle;font-variant-numeric:tabular-nums}
+.wf-lab{fill:var(--muted);font-size:10.5px;text-anchor:middle}
+.cross line{stroke:var(--axis);stroke-width:1}
+.legenda{display:flex;gap:16px;flex-wrap:wrap;color:var(--ink2);font-size:12px;margin-bottom:8px}
+.legenda span{display:flex;align-items:center;gap:6px}
+.sw{width:11px;height:11px;border-radius:3px;display:inline-block}
+i.sw.wf-pos{background:var(--s1)} i.sw.wf-neg{background:var(--neg)}
+i.sw.wf-sub{background:var(--muted)}
+.tip{position:absolute;pointer-events:none;opacity:0;transition:opacity .09s;
+  background:var(--surf);border:1px solid var(--ring);border-radius:8px;
+  box-shadow:var(--shadow);padding:8px 11px;font-size:12px;min-width:150px;z-index:5}
+.tip b{display:block;margin-bottom:4px;font-size:11px;color:var(--muted);
+  letter-spacing:.05em;text-transform:uppercase}
+.tip .row{display:flex;align-items:center;gap:7px;justify-content:space-between}
+.tip .row span:last-child{font-weight:640;font-variant-numeric:tabular-nums}
+.tip i{width:9px;height:9px;border-radius:50%;display:inline-block;flex:0 0 auto}
+
+/* ---- tabelas ---- */
+.tbl{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:8px}
+.tbl th{text-align:left;color:var(--muted);font-weight:600;font-size:10.5px;
+  letter-spacing:.07em;text-transform:uppercase;padding:7px 9px;
+  border-bottom:1px solid var(--axis);white-space:nowrap}
+.tbl th.ord{cursor:pointer;user-select:none}
+.tbl th.ord:hover{color:var(--ink)}
+.tbl td{padding:7px 9px;border-bottom:1px solid var(--grid)}
+.tbl .num{text-align:right;font-variant-numeric:tabular-nums}
+.tbl .neg{color:var(--critico);font-weight:620}
+.tabela-twin{margin-top:12px}
+.tabela-twin summary{cursor:pointer;color:var(--ink2);font-size:12px;
+  padding:6px 0;user-select:none}
+.tabela-twin summary:hover{color:var(--ink)}
+.scroll-x{overflow-x:auto}
+
+.narr{background:var(--surf2);border:1px solid var(--ring);border-left:3px solid var(--s1);
+  border-radius:8px;padding:14px 16px;color:var(--ink2);font-size:13px;line-height:1.65}
+footer{color:var(--muted);font-size:11.5px;margin-top:24px;line-height:1.7;
+  border-top:1px solid var(--ring);padding-top:16px}
+@media print{.tema{display:none} .card{break-inside:avoid}}
+</style></head><body>
+
+<div class="top"><div class="top-in">
+  <div>
+    <div class="brand">Oráculo · copiloto de FP&amp;A</div>
+    <h1>FluxoData</h1>
+    <div class="sub">SaaS / Tech · período 2025-01 a 2025-12 · mês crítico <b>2025-09</b> · balanço em 2025-12</div>
   </div>
-
-  <div class="card"><h2>Métricas SaaS</h2><p class="hint">Unit economics de receita recorrente. Semáforo pelas metas de mercado (LTV/CAC ≥ 3, payback ≤ 12m, churn ≤ 3%, NRR ≥ 100%).</p><div class="indic-grid"><div class="cell"><span class="dot "></span><span class="cl">Clientes</span><span class="cv">1.884</span></div><div class="cell"><span class="dot "></span><span class="cl">MRR</span><span class="cv">R$ 1,43 mi</span></div><div class="cell"><span class="dot "></span><span class="cl">ARR</span><span class="cv">R$ 17,20 mi</span></div><div class="cell"><span class="dot "></span><span class="cl">ARPA (R$/cliente)</span><span class="cv">R$ 761</span></div><div class="cell"><span class="dot "></span><span class="cl">CAC</span><span class="cv">R$ 2048</span></div><div class="cell"><span class="dot "></span><span class="cl">LTV</span><span class="cv">R$ 22 mil</span></div><div class="cell"><span class="dot bom"></span><span class="cl">LTV / CAC</span><span class="cv">11.0x</span></div><div class="cell"><span class="dot bom"></span><span class="cl">Payback (meses)</span><span class="cv">3.4</span></div><div class="cell"><span class="dot bom"></span><span class="cl">Churn mensal</span><span class="cv">2.7%</span></div><div class="cell"><span class="dot "></span><span class="cl">Churn anual</span><span class="cv">28.1%</span></div><div class="cell"><span class="dot atencao"></span><span class="cl">NRR (anual)</span><span class="cv">91.8%</span></div><div class="cell"><span class="dot "></span><span class="cl">Pico de churn</span><span class="cv">2025-09</span></div></div></div>
-
-  <div class="card"><h2>EBITDA — Orçado vs Realizado</h2>
-    <p class="hint">Linha cheia = realizado; tracejada = orçado; ponto vermelho = mês crítico.</p>
-    <svg viewBox='0 0 760 300' class='chart' role='img' aria-label='EBITDA orçado vs realizado'><line x1='64' y1='258.0' x2='736' y2='258.0' class='grid'/><text x='54' y='262.0' class='ylab'>R$ 0.0M</text><line x1='64' y1='199.0' x2='736' y2='199.0' class='grid'/><text x='54' y='203.0' class='ylab'>R$ 0.2M</text><line x1='64' y1='140.0' x2='736' y2='140.0' class='grid'/><text x='54' y='144.0' class='ylab'>R$ 0.3M</text><line x1='64' y1='81.0' x2='736' y2='81.0' class='grid'/><text x='54' y='85.0' class='ylab'>R$ 0.5M</text><line x1='64' y1='22.0' x2='736' y2='22.0' class='grid'/><text x='54' y='26.0' class='ylab'>R$ 0.7M</text><text x='64.0' y='286' class='xlab'>01</text><text x='186.2' y='286' class='xlab'>03</text><text x='308.4' y='286' class='xlab'>05</text><text x='430.5' y='286' class='xlab'>07</text><text x='552.7' y='286' class='xlab'>09</text><text x='674.9' y='286' class='xlab'>11</text><text x='736.0' y='286' class='xlab'>12</text><path d='M64.0 104.5 L125.1 100.7 L186.2 96.9 L247.3 92.9 L308.4 88.9 L369.5 84.7 L430.5 80.5 L491.6 76.3 L552.7 71.9 L613.8 67.4 L674.9 62.9 L736.0 58.2' class='line-orc'/><path d='M64.0 111.5 L125.1 96.5 L186.2 104.6 L247.3 87.9 L308.4 96.1 L369.5 86.9 L430.5 73.1 L491.6 75.3 L552.7 136.1 L613.8 53.4 L674.9 55.1 L736.0 47.3' class='line-real'/><circle cx='64.0' cy='111.5' r='3.3' class='dot-real'><title>2025-01: R$ 429,707</title></circle><circle cx='125.1' cy='96.5' r='3.3' class='dot-real'><title>2025-02: R$ 473,702</title></circle><circle cx='186.2' cy='104.6' r='3.3' class='dot-real'><title>2025-03: R$ 449,880</title></circle><circle cx='247.3' cy='87.9' r='3.3' class='dot-real'><title>2025-04: R$ 498,868</title></circle><circle cx='308.4' cy='96.1' r='3.3' class='dot-real'><title>2025-05: R$ 474,666</title></circle><circle cx='369.5' cy='86.9' r='3.3' class='dot-real'><title>2025-06: R$ 501,849</title></circle><circle cx='430.5' cy='73.1' r='3.3' class='dot-real'><title>2025-07: R$ 542,337</title></circle><circle cx='491.6' cy='75.3' r='3.3' class='dot-real'><title>2025-08: R$ 535,734</title></circle><circle cx='552.7' cy='136.1' r='5' class='dot-crit'><title>2025-09: R$ 357,596</title></circle><circle cx='613.8' cy='53.4' r='3.3' class='dot-real'><title>2025-10: R$ 599,933</title></circle><circle cx='674.9' cy='55.1' r='3.3' class='dot-real'><title>2025-11: R$ 595,113</title></circle><circle cx='736.0' cy='47.3' r='3.3' class='dot-real'><title>2025-12: R$ 617,916</title></circle><text x='552.7' y='124.1' class='annot'>2025-09</text></svg>
-    <div class="legend"><span><i class="swatch" style="background:var(--accent)"></i>Realizado</span>
-      <span><i class="swatch" style="background:var(--plan)"></i>Orçado</span>
-      <span><i class="swatch" style="background:var(--critico)"></i>Mês crítico</span></div>
+  <div class="top-sp"></div>
+  <div class="tema" role="group" aria-label="Tema">
+    <button data-t="auto" aria-pressed="true">Auto</button>
+    <button data-t="light" aria-pressed="false">Claro</button>
+    <button data-t="dark" aria-pressed="false">Escuro</button>
   </div>
+</div></div>
 
-  <div class="card"><h2>Margens ao longo do ano</h2>
-    <p class="hint">Margem bruta (tracejada) e margem EBITDA (cheia), realizado, como % da receita.</p>
-    <svg viewBox='0 0 760 260' class='chart' role='img' aria-label='Margens ao longo do ano'><line x1='46' y1='220.0' x2='690' y2='220.0' class='grid'/><text x='38' y='224.0' class='ylab'>0%</text><line x1='46' y1='169.5' x2='690' y2='169.5' class='grid'/><text x='38' y='173.5' class='ylab'>23%</text><line x1='46' y1='119.0' x2='690' y2='119.0' class='grid'/><text x='38' y='123.0' class='ylab'>47%</text><line x1='46' y1='68.5' x2='690' y2='68.5' class='grid'/><text x='38' y='72.5' class='ylab'>70%</text><line x1='46' y1='18.0' x2='690' y2='18.0' class='grid'/><text x='38' y='22.0' class='ylab'>93%</text><text x='46.0' y='247' class='xlab'>01</text><text x='163.1' y='247' class='xlab'>03</text><text x='280.2' y='247' class='xlab'>05</text><text x='397.3' y='247' class='xlab'>07</text><text x='514.4' y='247' class='xlab'>09</text><text x='631.5' y='247' class='xlab'>11</text><text x='690.0' y='247' class='xlab'>12</text><path d='M46.0 47.8 L104.5 45.8 L163.1 48.1 L221.6 45.9 L280.2 46.9 L338.7 47.5 L397.3 44.4 L455.8 46.1 L514.4 53.7 L572.9 44.3 L631.5 45.8 L690.0 47.3' class='line-bruta'/><path d='M46.0 114.6 L104.5 109.5 L163.1 113.3 L221.6 108.3 L280.2 111.5 L338.7 109.7 L397.3 105.9 L455.8 107.8 L514.4 134.7 L572.9 102.5 L631.5 103.9 L690.0 104.9' class='line-real'/><text x='696.0' y='108.9' class='lab-real'>EBITDA 53%</text><text x='696.0' y='51.3' class='lab-bruta'>Bruta 80%</text></svg>
+<div class="wrap">
+
+<div class="kpis"><div class="tile critico"><div class="tile-lab">Receita líquida<span class="mk critico" aria-label="crítico" title="crítico">■</span></div><div class="tile-val">R$ 909 mil</div><div class="tile-sub">-13.8% vs orçado</div></div><div class="tile bom"><div class="tile-lab">CMV (custo)<span class="mk bom" aria-label="bom" title="bom">●</span></div><div class="tile-val">R$ 212 mil</div><div class="tile-sub">+0.4% vs orçado</div></div><div class="tile critico"><div class="tile-lab">EBITDA<span class="mk critico" aria-label="crítico" title="crítico">■</span></div><div class="tile-val">R$ 358 mil</div><div class="tile-sub">-34.5% vs orçado</div></div><div class="tile critico"><div class="tile-lab">Margem EBITDA<span class="mk critico" aria-label="crítico" title="crítico">■</span></div><div class="tile-val">39.3%</div><div class="tile-sub">plano: 51.8%</div></div></div>
+
+<article class="card">
+  <header class="card-h"><h2>Painel de indicadores</h2>
+  <p class="hint">Calculados sobre o balanço de 2025-12 e a DRE do ano.</p></header>
+  <section class="grupo"><h3>Rentabilidade</h3><div class="grid-ind"><div class="cell"><span class="mk vazio" aria-hidden="true">·</span><span class="cl">Margem bruta</span><span class="cv">79.9%</span></div><div class="cell"><span class="mk vazio" aria-hidden="true">·</span><span class="cl">Margem EBITDA</span><span class="cv">50.7%</span></div><div class="cell"><span class="mk vazio" aria-hidden="true">·</span><span class="cl">Margem líquida</span><span class="cv">31.1%</span></div><div class="cell"><span class="mk bom" role="img" aria-label="bom" title="bom">●</span><span class="cl">ROE</span><span class="cv">61.3%</span></div><div class="cell"><span class="mk bom" role="img" aria-label="bom" title="bom">●</span><span class="cl">ROIC</span><span class="cv">82.8%</span></div><div class="cell"><span class="mk vazio" aria-hidden="true">·</span><span class="cl">ROA</span><span class="cv">49.6%</span></div><div class="cell"><span class="mk vazio" aria-hidden="true">·</span><span class="cl">Giro do ativo</span><span class="cv">1.59x</span></div><div class="cell"><span class="mk bom" role="img" aria-label="bom" title="bom">●</span><span class="cl">EVA</span><span class="cv">R$ 3,26 mi</span></div></div></section><section class="grupo"><h3>Liquidez</h3><div class="grid-ind"><div class="cell"><span class="mk bom" role="img" aria-label="bom" title="bom">●</span><span class="cl">Liquidez corrente</span><span class="cv">5.98x</span></div><div class="cell"><span class="mk bom" role="img" aria-label="bom" title="bom">●</span><span class="cl">Liquidez seca</span><span class="cv">5.95x</span></div><div class="cell"><span class="mk bom" role="img" aria-label="bom" title="bom">●</span><span class="cl">Liquidez geral</span><span class="cv">2.66x</span></div><div class="cell"><span class="mk vazio" aria-hidden="true">·</span><span class="cl">Liquidez imediata</span><span class="cv">3.96x</span></div></div></section><section class="grupo"><h3>Endividamento / alavancagem</h3><div class="grid-ind"><div class="cell"><span class="mk bom" role="img" aria-label="bom" title="bom">●</span><span class="cl">Dív. Líq / EBITDA</span><span class="cv">-0.24x</span></div><div class="cell"><span class="mk bom" role="img" aria-label="bom" title="bom">●</span><span class="cl">Dívida / PL</span><span class="cv">0.18x</span></div><div class="cell"><span class="mk bom" role="img" aria-label="bom" title="bom">●</span><span class="cl">Cobertura de juros</span><span class="cv">31.59x</span></div><div class="cell"><span class="mk vazio" aria-hidden="true">·</span><span class="cl">% no curto prazo</span><span class="cv">27.3%</span></div></div></section><section class="grupo"><h3>Capital de giro (Fleuriet)</h3><div class="grid-ind"><div class="cell"><span class="mk vazio" aria-hidden="true">·</span><span class="cl">Ciclo financeiro</span><span class="cv">6d</span></div><div class="cell"><span class="mk vazio" aria-hidden="true">·</span><span class="cl">PMR / PME / PMP</span><span class="cv">32/2/28d</span></div><div class="cell"><span class="mk vazio" aria-hidden="true">·</span><span class="cl">NCG</span><span class="cv">R$ 952 mil</span></div><div class="cell"><span class="mk bom" role="img" aria-label="bom" title="bom">●</span><span class="cl">Tesouraria (Fleuriet)</span><span class="cv">R$ 2,23 mi</span></div></div></section><section class="grupo"><h3>Solvência</h3><div class="grid-ind"><div class="cell"><span class="mk bom" role="img" aria-label="bom" title="bom">●</span><span class="cl">Kanitz (insolvência)</span><span class="cv">19.13</span></div><div class="cell"><span class="mk bom" role="img" aria-label="bom" title="bom">●</span><span class="cl">Altman Z&#x27; (fechada)</span><span class="cv">6.50</span></div></div></section>
+  <div class="legenda-sem">
+    <span><span class="mk bom">●</span> bom</span>
+    <span><span class="mk atencao">▲</span> atenção</span>
+    <span><span class="mk critico">■</span> crítico</span>
+    <span>Forma e cor juntas — o estado nunca depende só da cor.</span>
   </div>
+</article>
 
-  <div class="card"><h2>Fluxo de Caixa (DFC — método indireto)</h2>
-    <p class="hint">Do lucro líquido ao caixa: FCO R$ 3,74 mi · FCFF R$ 3,45 mi · Δ Caixa R$ 2,33 mi. Barras verdes entram caixa, vermelhas saem; azuis são subtotais.</p>
-    <svg viewBox='0 0 760 290' class='chart' role='img' aria-label='Cascata do fluxo de caixa'><line x1='40' y1='240.0' x2='744' y2='240.0' class='grid'/><rect x='56.7' y='57.0' width='54.6' height='183.0' rx='3' class='wf-tot'><title>Lucro líq.: R$ 3,730,830</title></rect><text x='84.0' y='52.0' class='wf-val'>+3.7</text><text x='84.0' y='276' class='wf-lab'>Lucro líq.</text><rect x='144.7' y='45.3' width='54.6' height='11.8' rx='3' class='wf-up'><title>+ D&A: R$ 239,727</title></rect><text x='172.0' y='40.3' class='wf-val'>+0.2</text><text x='172.0' y='276' class='wf-lab'>+ D&A</text><rect x='232.7' y='45.3' width='54.6' height='11.4' rx='3' class='wf-down'><title>± Cap.giro: R$ -233,445</title></rect><text x='260.0' y='40.3' class='wf-val'>-0.2</text><text x='260.0' y='276' class='wf-lab'>± Cap.giro</text><rect x='320.7' y='56.7' width='54.6' height='183.3' rx='3' class='wf-sub'><title>= FCO: R$ 3,737,112</title></rect><text x='348.0' y='51.7' class='wf-val'>+3.7</text><text x='348.0' y='276' class='wf-lab'>= FCO</text><rect x='408.7' y='56.7' width='54.6' height='14.1' rx='3' class='wf-down'><title>− CAPEX: R$ -287,673</title></rect><text x='436.0' y='51.7' class='wf-val'>-0.3</text><text x='436.0' y='276' class='wf-lab'>− CAPEX</text><rect x='496.7' y='70.8' width='54.6' height='169.2' rx='3' class='wf-sub'><title>= FCFF: R$ 3,449,439</title></rect><text x='524.0' y='65.8' class='wf-val'>+3.4</text><text x='524.0' y='276' class='wf-lab'>= FCFF</text><rect x='584.7' y='70.8' width='54.6' height='54.9' rx='3' class='wf-down'><title>− Divid.: R$ -1,119,249</title></rect><text x='612.0' y='65.8' class='wf-val'>-1.1</text><text x='612.0' y='276' class='wf-lab'>− Divid.</text><rect x='672.7' y='125.7' width='54.6' height='114.3' rx='3' class='wf-tot'><title>Δ Caixa: R$ 2,330,190</title></rect><text x='700.0' y='120.7' class='wf-val'>+2.3</text><text x='700.0' y='276' class='wf-lab'>Δ Caixa</text></svg>
-  </div>
+<article class="card">
+  <header class="card-h"><h2>EBITDA — orçado × realizado</h2>
+  <p class="hint">Duas séries no mesmo eixo. O ponto destacado é o mês crítico.</p></header>
+  <div class='chart-wrap' data-chart='{&quot;x&quot;: [70.0, 125.81818181818181, 181.63636363636363, 237.45454545454544, 293.27272727272725, 349.09090909090907, 404.9090909090909, 460.72727272727275, 516.5454545454545, 572.3636363636364, 628.1818181818181, 684.0], &quot;labels&quot;: [&quot;2025-01&quot;, &quot;2025-02&quot;, &quot;2025-03&quot;, &quot;2025-04&quot;, &quot;2025-05&quot;, &quot;2025-06&quot;, &quot;2025-07&quot;, &quot;2025-08&quot;, &quot;2025-09&quot;, &quot;2025-10&quot;, &quot;2025-11&quot;, &quot;2025-12&quot;], &quot;series&quot;: [{&quot;nome&quot;: &quot;Realizado&quot;, &quot;slot&quot;: 1, &quot;y&quot;: [162.45457629386448, 140.70882099872438, 152.48361653533118, 128.2697772289518, 140.23242887031353, 126.7963034588113, 106.78403305138595, 110.04741872844556, 198.09790209790208, 78.31544030447579, 80.69768268620189, 69.42657342657341], &quot;valores&quot;: [&quot;R$ 429.707&quot;, &quot;R$ 473.702&quot;, &quot;R$ 449.880&quot;, &quot;R$ 498.868&quot;, &quot;R$ 474.666&quot;, &quot;R$ 501.849&quot;, &quot;R$ 542.337&quot;, &quot;R$ 535.734&quot;, &quot;R$ 357.596&quot;, &quot;R$ 599.933&quot;, &quot;R$ 595.113&quot;, &quot;R$ 617.916&quot;]}, {&quot;nome&quot;: &quot;Or\u00e7ado&quot;, &quot;slot&quot;: 2, &quot;y&quot;: [152.42423372097227, 146.90806751283486, 141.2815779805347, 135.54256063470905, 129.68875661518126, 123.71788234776837, 117.62759000187116, 111.41549220448007, 105.07915215457302, 98.61608362311546, 92.02375095306003, 85.29957894494937], &quot;valores&quot;: [&quot;R$ 450.000&quot;, &quot;R$ 461.160&quot;, &quot;R$ 472.543&quot;, &quot;R$ 484.154&quot;, &quot;R$ 495.997&quot;, &quot;R$ 508.077&quot;, &quot;R$ 520.399&quot;, &quot;R$ 532.967&quot;, &quot;R$ 545.786&quot;, &quot;R$ 558.862&quot;, &quot;R$ 572.199&quot;, &quot;R$ 585.803&quot;]}], &quot;topo&quot;: 26, &quot;base&quot;: 256}'><svg viewBox='0 0 780 300' class='chart' role='img' aria-label='EBITDA orçado versus realizado ao longo de 12 meses'><line x1='70' y1='256.0' x2='684' y2='256.0' class='grid'/><text x='60' y='260.0' class='ylab'>R$ 0.2M</text><line x1='70' y1='198.5' x2='684' y2='198.5' class='grid'/><text x='60' y='202.5' class='ylab'>R$ 0.4M</text><line x1='70' y1='141.0' x2='684' y2='141.0' class='grid'/><text x='60' y='145.0' class='ylab'>R$ 0.5M</text><line x1='70' y1='83.5' x2='684' y2='83.5' class='grid'/><text x='60' y='87.5' class='ylab'>R$ 0.6M</text><line x1='70' y1='26.0' x2='684' y2='26.0' class='grid'/><text x='60' y='30.0' class='ylab'>R$ 0.7M</text><text x='70.0' y='286' class='xlab'>01</text><text x='181.6' y='286' class='xlab'>03</text><text x='293.3' y='286' class='xlab'>05</text><text x='404.9' y='286' class='xlab'>07</text><text x='516.5' y='286' class='xlab'>09</text><text x='628.2' y='286' class='xlab'>11</text><text x='684.0' y='286' class='xlab'>12</text><path d='M70.0 152.4 L125.8 146.9 L181.6 141.3 L237.5 135.5 L293.3 129.7 L349.1 123.7 L404.9 117.6 L460.7 111.4 L516.5 105.1 L572.4 98.6 L628.2 92.0 L684.0 85.3' class='ln s2'/><path d='M70.0 162.5 L125.8 140.7 L181.6 152.5 L237.5 128.3 L293.3 140.2 L349.1 126.8 L404.9 106.8 L460.7 110.0 L516.5 198.1 L572.4 78.3 L628.2 80.7 L684.0 69.4' class='ln s1'/><circle cx='70.0' cy='162.5' r='4.5' class='pt '/><circle cx='125.8' cy='140.7' r='4.5' class='pt '/><circle cx='181.6' cy='152.5' r='4.5' class='pt '/><circle cx='237.5' cy='128.3' r='4.5' class='pt '/><circle cx='293.3' cy='140.2' r='4.5' class='pt '/><circle cx='349.1' cy='126.8' r='4.5' class='pt '/><circle cx='404.9' cy='106.8' r='4.5' class='pt '/><circle cx='460.7' cy='110.0' r='4.5' class='pt '/><circle cx='516.5' cy='198.1' r='6' class='pt pt-crit'/><circle cx='572.4' cy='78.3' r='4.5' class='pt '/><circle cx='628.2' cy='80.7' r='4.5' class='pt '/><circle cx='684.0' cy='69.4' r='4.5' class='pt '/><text x='516.5' y='184.1' class='annot'>2025-09</text><text x='694.0' y='73.4' class='dlab s1'>Realizado</text><text x='694.0' y='89.3' class='dlab s2'>Orçado</text><g class='cross'></g></svg><div class='tip'></div></div><details class="tabela-twin"><summary>Ver os dados em tabela</summary><table class="tbl"><thead><tr><th>Competência</th><th>Orçado</th><th>Realizado</th><th>Desvio</th></tr></thead><tbody><tr><td class='num'>2025-01</td><td class='num'>R$ 450.000</td><td class='num'>R$ 429.707</td><td class='num'>-4.5%</td></tr><tr><td class='num'>2025-02</td><td class='num'>R$ 461.160</td><td class='num'>R$ 473.702</td><td class='num'>+2.7%</td></tr><tr><td class='num'>2025-03</td><td class='num'>R$ 472.543</td><td class='num'>R$ 449.880</td><td class='num'>-4.8%</td></tr><tr><td class='num'>2025-04</td><td class='num'>R$ 484.154</td><td class='num'>R$ 498.868</td><td class='num'>+3.0%</td></tr><tr><td class='num'>2025-05</td><td class='num'>R$ 495.997</td><td class='num'>R$ 474.666</td><td class='num'>-4.3%</td></tr><tr><td class='num'>2025-06</td><td class='num'>R$ 508.077</td><td class='num'>R$ 501.849</td><td class='num'>-1.2%</td></tr><tr><td class='num'>2025-07</td><td class='num'>R$ 520.399</td><td class='num'>R$ 542.337</td><td class='num'>+4.2%</td></tr><tr><td class='num'>2025-08</td><td class='num'>R$ 532.967</td><td class='num'>R$ 535.734</td><td class='num'>+0.5%</td></tr><tr><td class='num'>2025-09</td><td class='num'>R$ 545.786</td><td class='num'>R$ 357.596</td><td class='num'>-34.5%</td></tr><tr><td class='num'>2025-10</td><td class='num'>R$ 558.862</td><td class='num'>R$ 599.933</td><td class='num'>+7.3%</td></tr><tr><td class='num'>2025-11</td><td class='num'>R$ 572.199</td><td class='num'>R$ 595.113</td><td class='num'>+4.0%</td></tr><tr><td class='num'>2025-12</td><td class='num'>R$ 585.803</td><td class='num'>R$ 617.916</td><td class='num'>+5.5%</td></tr></tbody></table></details>
+</article>
 
-  <div class="card"><h2>Análise vertical — DRE do mês crítico (2025-09)</h2>
-    <p class="hint">Cada linha como % da Receita Líquida (realizado).</p>
-    <table><thead><tr><th>Conta</th><th>Realizado</th><th>% da RL</th></tr></thead><tbody><tr><td>Receita Líquida</td><td class='num'>R$ 908.959</td><td class='num'>100.0%</td></tr><tr><td>CMV</td><td class='num'>R$ 211.655</td><td class='num'>23.3%</td></tr><tr><td>Lucro Bruto</td><td class='num'>R$ 697.304</td><td class='num'>76.7%</td></tr><tr><td>Despesas Comerciais</td><td class='num'>R$ 228.773</td><td class='num'>25.2%</td></tr><tr><td>Despesas Administrativas</td><td class='num'>R$ 110.936</td><td class='num'>12.2%</td></tr><tr><td>EBITDA</td><td class='num'>R$ 357.596</td><td class='num'>39.3%</td></tr></tbody></table>
-  </div>
+<article class="card">
+  <header class="card-h"><h2>Margens ao longo do ano</h2>
+  <p class="hint">Realizado, como percentual da receita líquida.</p></header>
+  <div class='chart-wrap' data-chart='{&quot;x&quot;: [56.0, 111.27272727272728, 166.54545454545456, 221.8181818181818, 277.0909090909091, 332.3636363636364, 387.6363636363636, 442.9090909090909, 498.1818181818182, 553.4545454545455, 608.7272727272727, 664.0], &quot;labels&quot;: [&quot;2025-01&quot;, &quot;2025-02&quot;, &quot;2025-03&quot;, &quot;2025-04&quot;, &quot;2025-05&quot;, &quot;2025-06&quot;, &quot;2025-07&quot;, &quot;2025-08&quot;, &quot;2025-09&quot;, &quot;2025-10&quot;, &quot;2025-11&quot;, &quot;2025-12&quot;], &quot;series&quot;: [{&quot;nome&quot;: &quot;Margem bruta&quot;, &quot;slot&quot;: 3, &quot;y&quot;: [51.93352854423405, 49.33060831672369, 52.24247861586259, 49.51709076993517, 50.713912945314405, 51.557892025635084, 47.56880330983288, 49.68546346724599, 59.38018008919716, 47.51219512195118, 49.415040982227126, 51.31623090393491], &quot;valores&quot;: [&quot;79.4%&quot;, &quot;80.4%&quot;, &quot;79.3%&quot;, &quot;80.3%&quot;, &quot;79.9%&quot;, &quot;79.6%&quot;, &quot;81.0%&quot;, &quot;80.2%&quot;, &quot;76.7%&quot;, &quot;81.0%&quot;, &quot;80.3%&quot;, &quot;79.6%&quot;]}, {&quot;nome&quot;: &quot;Margem EBITDA&quot;, &quot;slot&quot;: 1, &quot;y&quot;: [136.5782178386811, 130.18734535797404, 134.97462915302225, 128.5846130662947, 132.70525142122878, 130.4539996839623, 125.62131814427606, 128.03573559082963, 162.14634146341464, 121.3123814543248, 123.03765505311327, 124.31875746429174], &quot;valores&quot;: [&quot;48.6%&quot;, &quot;51.0%&quot;, &quot;49.2%&quot;, &quot;51.5%&quot;, &quot;50.0%&quot;, &quot;50.9%&quot;, &quot;52.6%&quot;, &quot;51.7%&quot;, &quot;39.3%&quot;, &quot;54.2%&quot;, &quot;53.6%&quot;, &quot;53.1%&quot;]}], &quot;topo&quot;: 20, &quot;base&quot;: 208}'><svg viewBox='0 0 780 250' class='chart' role='img' aria-label='Margem bruta e margem EBITDA ao longo do ano'><line x1='56' y1='208.0' x2='664' y2='208.0' class='grid'/><text x='46' y='212.0' class='ylab'>23%</text><line x1='56' y1='161.0' x2='664' y2='161.0' class='grid'/><text x='46' y='165.0' class='ylab'>40%</text><line x1='56' y1='114.0' x2='664' y2='114.0' class='grid'/><text x='46' y='118.0' class='ylab'>57%</text><line x1='56' y1='67.0' x2='664' y2='67.0' class='grid'/><text x='46' y='71.0' class='ylab'>74%</text><line x1='56' y1='20.0' x2='664' y2='20.0' class='grid'/><text x='46' y='24.0' class='ylab'>91%</text><text x='56.0' y='236' class='xlab'>01</text><text x='166.5' y='236' class='xlab'>03</text><text x='277.1' y='236' class='xlab'>05</text><text x='387.6' y='236' class='xlab'>07</text><text x='498.2' y='236' class='xlab'>09</text><text x='608.7' y='236' class='xlab'>11</text><text x='664.0' y='236' class='xlab'>12</text><path d='M56.0 51.9 L111.3 49.3 L166.5 52.2 L221.8 49.5 L277.1 50.7 L332.4 51.6 L387.6 47.6 L442.9 49.7 L498.2 59.4 L553.5 47.5 L608.7 49.4 L664.0 51.3' class='ln s3'/><path d='M56.0 136.6 L111.3 130.2 L166.5 135.0 L221.8 128.6 L277.1 132.7 L332.4 130.5 L387.6 125.6 L442.9 128.0 L498.2 162.1 L553.5 121.3 L608.7 123.0 L664.0 124.3' class='ln s1'/><text x='674.0' y='55.3' class='dlab s3'>Bruta 80%</text><text x='674.0' y='128.3' class='dlab s1'>EBITDA 53%</text><g class='cross'></g></svg><div class='tip'></div></div><details class="tabela-twin"><summary>Ver os dados em tabela</summary><table class="tbl"><thead><tr><th>Competência</th><th>Margem bruta</th><th>Margem EBITDA</th></tr></thead><tbody><tr><td class='num'>2025-01</td><td class='num'>79.4%</td><td class='num'>48.6%</td></tr><tr><td class='num'>2025-02</td><td class='num'>80.4%</td><td class='num'>51.0%</td></tr><tr><td class='num'>2025-03</td><td class='num'>79.3%</td><td class='num'>49.2%</td></tr><tr><td class='num'>2025-04</td><td class='num'>80.3%</td><td class='num'>51.5%</td></tr><tr><td class='num'>2025-05</td><td class='num'>79.9%</td><td class='num'>50.0%</td></tr><tr><td class='num'>2025-06</td><td class='num'>79.6%</td><td class='num'>50.9%</td></tr><tr><td class='num'>2025-07</td><td class='num'>81.0%</td><td class='num'>52.6%</td></tr><tr><td class='num'>2025-08</td><td class='num'>80.2%</td><td class='num'>51.7%</td></tr><tr><td class='num'>2025-09</td><td class='num'>76.7%</td><td class='num'>39.3%</td></tr><tr><td class='num'>2025-10</td><td class='num'>81.0%</td><td class='num'>54.2%</td></tr><tr><td class='num'>2025-11</td><td class='num'>80.3%</td><td class='num'>53.6%</td></tr><tr><td class='num'>2025-12</td><td class='num'>79.6%</td><td class='num'>53.1%</td></tr></tbody></table></details>
+</article>
 
-  <div class="card"><h2>Achados — desvios materiais desfavoráveis</h2>
-    <p class="hint">Somente desvios acima de 5% (materialidade).</p>
-    <table><thead><tr><th>Competência</th><th>Conta</th><th>Orçado</th><th>Realizado</th><th>Desvio</th></tr></thead><tbody><tr><td>2025-09</td><td>EBITDA</td><td class='num'>R$ 545.786</td><td class='num'>R$ 357.596</td><td class='num neg'>-34.5%</td></tr><tr><td>2025-09</td><td>Despesas Comerciais</td><td class='num'>R$ 189.809</td><td class='num'>R$ 228.773</td><td class='num neg'>+20.5%</td></tr><tr><td>2025-09</td><td>Lucro Bruto</td><td class='num'>R$ 843.595</td><td class='num'>R$ 697.304</td><td class='num neg'>-17.3%</td></tr><tr><td>2025-09</td><td>Receita Líquida</td><td class='num'>R$ 1.054.493</td><td class='num'>R$ 908.959</td><td class='num neg'>-13.8%</td></tr><tr><td>2025-12</td><td>CMV</td><td class='num'>R$ 223.807</td><td class='num'>R$ 236.850</td><td class='num neg'>+5.8%</td></tr></tbody></table>
-  </div>
+<article class="card">
+  <header class="card-h"><h2>Fluxo de caixa — DFC (método indireto)</h2>
+  <p class="hint">Do lucro líquido ao caixa. FCO R$ 3,74 mi · FCFF R$ 3,45 mi · Δ Caixa R$ 2,33 mi</p></header>
+  <div class='legenda'><span><i class='sw wf-pos'></i>entra no caixa (+)</span><span><i class='sw wf-neg'></i>sai do caixa (−)</span><span><i class='sw wf-sub'></i>subtotal</span></div><div class='chart-wrap'><svg viewBox='0 0 780 300' class='chart' role='img' aria-label='Cascata do fluxo de caixa, do lucro líquido à variação de caixa'><line x1='62' y1='246.0' x2='760' y2='246.0' class='axis'/><line x1='62' y1='246.0' x2='760' y2='246.0' class='grid'/><text x='52' y='250.0' class='ylab'>R$ 0.0M</text><line x1='62' y1='172.7' x2='760' y2='172.7' class='grid'/><text x='52' y='176.7' class='ylab'>R$ 1.6M</text><line x1='62' y1='99.3' x2='760' y2='99.3' class='grid'/><text x='52' y='103.3' class='ylab'>R$ 3.1M</text><line x1='62' y1='26.0' x2='760' y2='26.0' class='grid'/><text x='52' y='30.0' class='ylab'>R$ 4.7M</text><rect x='80.3' y='70.8' width='50.6' height='175.2' rx='4' class='wf-sub'><title>Lucro líq.: R$ 3,730,830</title></rect><text x='105.6' y='63.8' class='wf-val'>3.7</text><text x='105.6' y='284' class='wf-lab'>Lucro líq.</text><rect x='167.6' y='59.6' width='50.6' height='11.3' rx='4' class='wf-pos'><title>+ D&amp;A: R$ 239,727</title></rect><text x='192.9' y='52.6' class='wf-val'>+0.2</text><text x='192.9' y='284' class='wf-lab'>+ D&amp;A</text><rect x='254.8' y='59.6' width='50.6' height='11.0' rx='4' class='wf-neg'><title>± Cap. giro: R$ -233,445</title></rect><text x='280.1' y='52.6' class='wf-val'>−0.2</text><text x='280.1' y='284' class='wf-lab'>± Cap. giro</text><rect x='342.1' y='70.5' width='50.6' height='175.5' rx='4' class='wf-sub'><title>= FCO: R$ 3,737,112</title></rect><text x='367.4' y='63.5' class='wf-val'>3.7</text><text x='367.4' y='284' class='wf-lab'>= FCO</text><rect x='429.3' y='70.5' width='50.6' height='13.5' rx='4' class='wf-neg'><title>− CAPEX: R$ -287,673</title></rect><text x='454.6' y='63.5' class='wf-val'>−0.3</text><text x='454.6' y='284' class='wf-lab'>− CAPEX</text><rect x='516.6' y='84.0' width='50.6' height='162.0' rx='4' class='wf-sub'><title>= FCFF: R$ 3,449,439</title></rect><text x='541.9' y='77.0' class='wf-val'>3.4</text><text x='541.9' y='284' class='wf-lab'>= FCFF</text><rect x='603.8' y='84.0' width='50.6' height='52.6' rx='4' class='wf-neg'><title>− Dividendos: R$ -1,119,249</title></rect><text x='629.1' y='77.0' class='wf-val'>−1.1</text><text x='629.1' y='284' class='wf-lab'>− Dividendos</text><rect x='691.1' y='136.6' width='50.6' height='109.4' rx='4' class='wf-sub'><title>Δ Caixa: R$ 2,330,190</title></rect><text x='716.4' y='129.6' class='wf-val'>2.3</text><text x='716.4' y='284' class='wf-lab'>Δ Caixa</text></svg></div><details class="tabela-twin"><summary>Ver os dados em tabela</summary><table class="tbl"><thead><tr><th>Etapa</th><th>Valor</th><th>Efeito</th></tr></thead><tbody><tr><td class='num'>Lucro líq.</td><td class='num'>R$ 3.730.830</td><td class='num'>subtotal</td></tr><tr><td class='num'>+ D&A</td><td class='num'>R$ 239.727</td><td class='num'>entra</td></tr><tr><td class='num'>± Cap. giro</td><td class='num'>R$ -233.445</td><td class='num'>sai</td></tr><tr><td class='num'>= FCO</td><td class='num'>R$ 3.737.112</td><td class='num'>subtotal</td></tr><tr><td class='num'>− CAPEX</td><td class='num'>R$ -287.673</td><td class='num'>sai</td></tr><tr><td class='num'>= FCFF</td><td class='num'>R$ 3.449.439</td><td class='num'>subtotal</td></tr><tr><td class='num'>− Dividendos</td><td class='num'>R$ -1.119.249</td><td class='num'>sai</td></tr><tr><td class='num'>Δ Caixa</td><td class='num'>R$ 2.330.190</td><td class='num'>subtotal</td></tr></tbody></table></details>
+</article>
 
-  <div class="card"><h2>Leitura do Oráculo</h2><p class="narr">ANÁLISE — FluxoData (SaaS / Tech) | período 2025-01 a 2025-12<br><br>Ponto de atenção em 2025-09:<br>  • EBITDA ficou -34.5% abaixo do orçado (R$ 545,786 -&gt; R$ 357,596).<br>  • Despesas Comerciais ficou +20.5% acima do orçado (R$ 189,809 -&gt; R$ 228,773).<br>  • Lucro Bruto ficou -17.3% abaixo do orçado (R$ 843,595 -&gt; R$ 697,304).<br>  • Receita Líquida ficou -13.8% abaixo do orçado (R$ 1,054,493 -&gt; R$ 908,959).<br><br>Margem EBITDA em 2025-09: 39.3% (plano: 51.8%).<br><br>Recomendação: investigar a causa-raiz em 2025-09 e revisar o forecast. (Sinalizados apenas desvios acima de 5%.)<br><br>— Números calculados a partir da planilha (rastreáveis). Não constitui recomendação de investimento.</p></div>
+<article class="card"><header class="card-h"><h2>Métricas SaaS</h2><p class="hint">Unit economics de receita recorrente. Semáforo pelas metas de mercado (LTV/CAC ≥ 3, payback ≤ 12m, churn ≤ 3%, NRR ≥ 100%).</p></header><div class="grid-ind"><div class="cell"><span class="mk vazio" aria-hidden="true">·</span><span class="cl">Clientes</span><span class="cv">1.884</span></div><div class="cell"><span class="mk vazio" aria-hidden="true">·</span><span class="cl">MRR</span><span class="cv">R$ 1,43 mi</span></div><div class="cell"><span class="mk vazio" aria-hidden="true">·</span><span class="cl">ARR</span><span class="cv">R$ 17,20 mi</span></div><div class="cell"><span class="mk vazio" aria-hidden="true">·</span><span class="cl">ARPA (R$/cliente)</span><span class="cv">R$ 761</span></div><div class="cell"><span class="mk vazio" aria-hidden="true">·</span><span class="cl">CAC</span><span class="cv">R$ 2048</span></div><div class="cell"><span class="mk vazio" aria-hidden="true">·</span><span class="cl">LTV</span><span class="cv">R$ 22 mil</span></div><div class="cell"><span class="mk bom" role="img" aria-label="bom" title="bom">●</span><span class="cl">LTV / CAC</span><span class="cv">11.0x</span></div><div class="cell"><span class="mk bom" role="img" aria-label="bom" title="bom">●</span><span class="cl">Payback (meses)</span><span class="cv">3.4</span></div><div class="cell"><span class="mk bom" role="img" aria-label="bom" title="bom">●</span><span class="cl">Churn mensal</span><span class="cv">2.7%</span></div><div class="cell"><span class="mk vazio" aria-hidden="true">·</span><span class="cl">Churn anual</span><span class="cv">28.1%</span></div><div class="cell"><span class="mk atencao" role="img" aria-label="atenção" title="atenção">▲</span><span class="cl">NRR (anual)</span><span class="cv">91.8%</span></div><div class="cell"><span class="mk vazio" aria-hidden="true">·</span><span class="cl">Pico de churn</span><span class="cv">2025-09</span></div></div></article>
 
-  <footer><span class="selo">Números calculados por código · rastreáveis</span>
-    &nbsp; Dados sintéticos para fins de portfólio. Não constitui recomendação de investimento.</footer>
-</div></body></html>
+<div class="cols">
+  <article class="card">
+    <header class="card-h"><h2>Análise vertical — DRE de 2025-09</h2>
+    <p class="hint">Cada linha como percentual da receita líquida (realizado).</p></header>
+    <div class="scroll-x"><table class="tbl"><thead><tr>
+      <th class="ord">Conta</th><th class="ord num">Realizado</th><th class="ord num">% da RL</th>
+    </tr></thead><tbody><tr><td>Receita Líquida</td><td class='num'>R$ 908.959</td><td class='num'>100.0%</td></tr><tr><td>CMV</td><td class='num'>R$ 211.655</td><td class='num'>23.3%</td></tr><tr><td>Lucro Bruto</td><td class='num'>R$ 697.304</td><td class='num'>76.7%</td></tr><tr><td>Despesas Comerciais</td><td class='num'>R$ 228.773</td><td class='num'>25.2%</td></tr><tr><td>Despesas Administrativas</td><td class='num'>R$ 110.936</td><td class='num'>12.2%</td></tr><tr><td>EBITDA</td><td class='num'>R$ 357.596</td><td class='num'>39.3%</td></tr></tbody></table></div>
+  </article>
+
+  <article class="card">
+    <header class="card-h"><h2>Desvios materiais</h2>
+    <p class="hint">Acima de 5% e desfavoráveis, do maior para o menor.</p></header>
+    <div class="scroll-x"><table class="tbl"><thead><tr>
+      <th class="ord">Compet.</th><th class="ord">Conta</th><th class="ord num">Orçado</th>
+      <th class="ord num">Realizado</th><th class="ord num">Desvio</th>
+    </tr></thead><tbody><tr><td>2025-09</td><td>EBITDA</td><td class='num'>R$ 545.786</td><td class='num'>R$ 357.596</td><td class='num neg'>-34.5%</td></tr><tr><td>2025-09</td><td>Despesas Comerciais</td><td class='num'>R$ 189.809</td><td class='num'>R$ 228.773</td><td class='num neg'>+20.5%</td></tr><tr><td>2025-09</td><td>Lucro Bruto</td><td class='num'>R$ 843.595</td><td class='num'>R$ 697.304</td><td class='num neg'>-17.3%</td></tr><tr><td>2025-09</td><td>Receita Líquida</td><td class='num'>R$ 1.054.493</td><td class='num'>R$ 908.959</td><td class='num neg'>-13.8%</td></tr><tr><td>2025-12</td><td>CMV</td><td class='num'>R$ 223.807</td><td class='num'>R$ 236.850</td><td class='num neg'>+5.8%</td></tr></tbody></table></div>
+  </article>
+</div>
+
+<article class="card">
+  <header class="card-h"><h2>Leitura do Oráculo</h2>
+  <p class="hint">Texto gerado a partir dos números acima — nenhum valor foi estimado.</p></header>
+  <div class="narr">ANÁLISE — FluxoData (SaaS / Tech) | período 2025-01 a 2025-12<br><br>Ponto de atenção em 2025-09:<br>  • EBITDA ficou -34.5% abaixo do orçado (R$ 545,786 -&gt; R$ 357,596).<br>  • Despesas Comerciais ficou +20.5% acima do orçado (R$ 189,809 -&gt; R$ 228,773).<br>  • Lucro Bruto ficou -17.3% abaixo do orçado (R$ 843,595 -&gt; R$ 697,304).<br>  • Receita Líquida ficou -13.8% abaixo do orçado (R$ 1,054,493 -&gt; R$ 908,959).<br><br>Margem EBITDA em 2025-09: 39.3% (plano: 51.8%).<br><br>Recomendação: investigar a causa-raiz em 2025-09 e revisar o forecast. (Sinalizados apenas desvios acima de 5%.)<br><br>— Números calculados a partir da planilha (rastreáveis). Não constitui recomendação de investimento.</div>
+</article>
+
+<footer>
+  Dados <b>100% sintéticos</b>, gerados de forma determinística para demonstração —
+  não representam empresa real.<br>
+  Todos os números vêm de cálculo em Python, rastreáveis por competência e conta.
+  Conteúdo educacional e gerencial: <b>não constitui recomendação de investimento</b>.
+</footer>
+</div>
+
+<script>
+(function(){
+  /* ---------- tema: auto (sistema) / claro / escuro ---------- */
+  var root=document.documentElement, bts=document.querySelectorAll('.tema button');
+  function aplicar(t){
+    if(t==='auto') root.removeAttribute('data-theme'); else root.setAttribute('data-theme',t);
+    bts.forEach(function(b){b.setAttribute('aria-pressed', b.dataset.t===t?'true':'false');});
+    try{localStorage.setItem('oraculo-tema',t);}catch(e){}
+  }
+  var salvo='auto';
+  try{salvo=localStorage.getItem('oraculo-tema')||'auto';}catch(e){}
+  aplicar(salvo);
+  bts.forEach(function(b){b.addEventListener('click',function(){aplicar(b.dataset.t);});});
+
+  /* ---------- tooltip com crosshair nos gráficos de linha ---------- */
+  var CORES={1:'--s1',2:'--s2',3:'--s3'};
+  document.querySelectorAll('.chart-wrap[data-chart]').forEach(function(w){
+    var d; try{d=JSON.parse(w.dataset.chart);}catch(e){return;}
+    var svg=w.querySelector('svg'), tip=w.querySelector('.tip'), cross=svg.querySelector('.cross');
+    var vb=svg.viewBox.baseVal;
+    function idx(px){
+      var i=0,melhor=1e9;
+      d.x.forEach(function(x,k){var v=Math.abs(x-px); if(v<melhor){melhor=v;i=k;}});
+      return i;
+    }
+    function mover(ev){
+      var r=svg.getBoundingClientRect();
+      var px=(ev.clientX-r.left)/r.width*vb.width;
+      var i=idx(px);
+      cross.innerHTML="<line x1='"+d.x[i]+"' y1='"+d.topo+"' x2='"+d.x[i]+"' y2='"+d.base+"'/>";
+      var linhas=d.series.map(function(s){
+        return "<div class='row'><span><i style='background:var("+CORES[s.slot]+")'></i>"+
+               s.nome+"</span><span>"+s.valores[i]+"</span></div>";
+      }).join('');
+      tip.innerHTML="<b>"+d.labels[i]+"</b>"+linhas;
+      tip.style.opacity=1;
+      var xr=d.x[i]/vb.width*r.width;
+      tip.style.left=Math.min(Math.max(xr-tip.offsetWidth/2,0),r.width-tip.offsetWidth)+'px';
+      tip.style.top='4px';
+    }
+    function sair(){tip.style.opacity=0;cross.innerHTML='';}
+    svg.addEventListener('mousemove',mover);
+    svg.addEventListener('mouseleave',sair);
+    svg.addEventListener('touchmove',function(e){mover(e.touches[0]);},{passive:true});
+  });
+
+  /* ---------- tabelas ordenáveis ---------- */
+  document.querySelectorAll('th.ord').forEach(function(th){
+    th.addEventListener('click',function(){
+      var tb=th.closest('table'), corpo=tb.tBodies[0];
+      var col=Array.prototype.indexOf.call(th.parentNode.children,th);
+      var asc=th.dataset.asc!=='1'; th.dataset.asc=asc?'1':'0';
+      var num=function(s){
+        var v=parseFloat(s.replace(/[^0-9,.\-−+]/g,'').replace(/\./g,'').replace(',','.').replace('−','-'));
+        return isNaN(v)?null:v;
+      };
+      var linhas=Array.prototype.slice.call(corpo.rows);
+      linhas.sort(function(a,b){
+        var x=a.cells[col].textContent.trim(), y=b.cells[col].textContent.trim();
+        var nx=num(x), ny=num(y);
+        var c=(nx!==null&&ny!==null)?nx-ny:x.localeCompare(y,'pt-BR');
+        return asc?c:-c;
+      });
+      linhas.forEach(function(l){corpo.appendChild(l);});
+    });
+  });
+})();
+</script>
+</body></html>

@@ -66,7 +66,7 @@ if not defined NAV if exist "%ProgramFiles(x86)%\Google\Chrome\Application\chrom
 if not defined NAV goto :sem_imagem
 
 set "URL=file:///%SAIDA:\=/%"
-"%NAV%" --headless=new --disable-gpu --hide-scrollbars --window-size=1400,3950 --virtual-time-budget=4000 --screenshot="%PNG%" "%URL%" >nul 2>&1
+"%NAV%" --headless=new --disable-gpu --hide-scrollbars --window-size=1300,3760 --virtual-time-budget=4000 --screenshot="%PNG%" "%URL%" >nul 2>&1
 if not exist "%PNG%" goto :sem_imagem
 echo Imagem gerada: %PNG%
 exit /b 0
