@@ -40,6 +40,20 @@ Troque `fluxodata` pela empresa e acrescente a flag conforme o pedido:
 Sem flag = modo **offline** (determinístico, não gasta crédito). É o padrão.
 Use `--ia` **somente** quando ele pedir a narrativa explicitamente.
 
+### As planilhas do próprio Kerlison (BYOD)
+
+Além das 3 demos, ele pode analisar qualquer empresa. Basta existir o arquivo
+`dados\minhas\dre-<nome>.csv` na pasta do projeto — aí o `<nome>` funciona como
+qualquer outra empresa: `oraculo.cmd <nome>` e `oraculo.cmd <nome> --dash`.
+
+Se ele pedir a análise de uma empresa que você não conhece, **não invente**:
+rode o comando com o nome que ele usou. Se a planilha não existir, o script
+devolve a lista de nomes válidos e o caminho onde salvar — repasse isso a ele.
+
+> ⚠️ Planilha em `dados\minhas\` pode conter **dado real de empresa**. Nunca
+> copie esse conteúdo para fora da máquina, nunca sugira commitá-la, e prefira o
+> modo offline (padrão) — o `--ia` envia o resumo para a API do modelo.
+
 ### Empresas disponíveis (dados sintéticos de demonstração)
 
 | Como o Kerlison pede | Parâmetro |

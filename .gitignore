@@ -12,6 +12,9 @@ venv/
 
 # Dados reais (só sintéticos entram no repo)
 dados/reais/
+dados/minhas/*
+!dados/minhas/.gitkeep
+!dados/minhas/LEIA-ME.md
 
 .pytest_cache/
 

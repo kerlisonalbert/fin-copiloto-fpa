@@ -20,15 +20,29 @@ O ponto central: **o agente não calcula nada**. Ele lê o `TOOLS.md`, descobre
 qual comando rodar, executa, lê a saída e narra. Se o comando falhar, ele diz
 que falhou — não estima.
 
-## Arquivos
+## Os quatro arquivos que definem o agente
+
+Cada um responde a uma pergunta diferente. Separá-los é o que permite mudar o
+comportamento sem mexer na identidade, e trocar de ferramenta sem reescrever a
+doutrina.
+
+| Arquivo | Responde | Vive em |
+|---|---|---|
+| `IDENTITY.md` | **Quem eu sou?** — nome, tom, foco | `~/.openclaw/workspace/` |
+| `SOUL.md` | **Como eu penso?** — doutrina analítica e regras invioláveis | `~/.openclaw/workspace/` |
+| `TOOLS.md` | **O que eu sei fazer aqui?** — comandos, caminhos, armadilhas | `~/.openclaw/workspace/` |
+| `USER.md` | **Com quem eu trabalho?** — contexto e preferências da pessoa | `~/.openclaw/workspace/` |
+
+Três deles estão versionados nesta pasta como documentação e para reuso.
+
+> **`USER.md` fica de fora de propósito.** Ele contém dados pessoais (nome,
+> localidade, identificador de canal). Documento a existência do arquivo, não o
+> conteúdo — princípio de minimização da LGPD aplicado ao próprio repositório.
 
 | Arquivo | Onde vive de verdade | Papel |
 |---|---|---|
 | `oraculo.cmd` (raiz do projeto) | no repositório | Atalho: resolve caminhos e escolhe o modo (offline / `--ia` / `--dash`) |
-| `TOOLS.md` (cópia aqui) | `~/.openclaw/workspace/TOOLS.md` | Ensina ao agente onde está a ferramenta, como chamá-la e as regras de governança |
-
-> A cópia do `TOOLS.md` está versionada aqui para documentação e reuso. O arquivo
-> que o agente realmente lê fica no workspace do OpenClaw.
+| `TOOLS.md`, `SOUL.md`, `IDENTITY.md` (cópias aqui) | `~/.openclaw/workspace/` | O que o agente lê ao iniciar a sessão |
 
 ## Governança embutida na integração
 
