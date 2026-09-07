@@ -1,5 +1,7 @@
 # TOOLS.md — Notas locais desta máquina
 
+> **Nota:** esta é a cópia versionada, com o caminho genérico `C:\Users\SEU-USUARIO\...`.
+> No arquivo que o agente realmente lê (`~/.openclaw/workspace/TOOLS.md`) o caminho é o real da máquina.
 Skills dizem *como* as ferramentas funcionam. Este arquivo diz *onde as coisas
 estão nesta máquina* e *como o Kerlison gosta que sejam usadas*.
 
@@ -11,19 +13,19 @@ Ferramenta de análise de fechamento: orçado × realizado, ~30 indicadores,
 fluxo de caixa (DFC), métricas SaaS e um dashboard HTML.
 
 **Pasta do projeto:**
-`C:\Users\kerli\Curso de Agentes de IA - Financas e Governanca\fin-copiloto-fpa`
+`C:\Users\SEU-USUARIO\Curso de Agentes de IA - Financas e Governanca\fin-copiloto-fpa`
 
 ### Como chamar — copie a linha EXATAMENTE, incluindo o `&` do início
 
 ```
-& "C:\Users\kerli\Curso de Agentes de IA - Financas e Governanca\fin-copiloto-fpa\oraculo.cmd" fluxodata
+& "C:\Users\SEU-USUARIO\Curso de Agentes de IA - Financas e Governanca\fin-copiloto-fpa\oraculo.cmd" fluxodata
 ```
 
 > ⚠️ Três detalhes que fazem a chamada falhar se forem esquecidos:
 > 1. O **`&`** no início é **obrigatório**. No PowerShell, um caminho entre aspas
 >    sem o `&` é tratado como texto, não como comando — retorna `exitCode 1`.
 > 2. As **aspas** são obrigatórias — o caminho tem espaços.
-> 3. Use o caminho **absoluto** começando em `C:\Users\kerli`. Não use `~` nem
+> 3. Use o caminho **absoluto** começando em `C:\Users\SEU-USUARIO`. Não use `~` nem
 >    `%USERPROFILE%`: dependendo do shell eles não são expandidos.
 > 4. **Não use `cd` nem `&&`.** Este Windows roda PowerShell 5.1, que **não
 >    entende `&&`** (erro: `token '&&'`). Rode a linha única acima, direto.
@@ -74,8 +76,8 @@ devolve a lista de nomes válidos e o caminho onde salvar — repasse isso a ele
 O comando produz **dois arquivos**, sempre nesta pasta (sem espaços, de propósito):
 
 ```
-C:\Users\kerli\.openclaw\workspace\relatorios\relatorio-<empresa>.png    <- ANEXE ESTE
-C:\Users\kerli\.openclaw\workspace\relatorios\relatorio-<empresa>.html   <- so cite no texto
+C:\Users\SEU-USUARIO\.openclaw\workspace\relatorios\relatorio-<empresa>.png    <- ANEXE ESTE
+C:\Users\SEU-USUARIO\.openclaw\workspace\relatorios\relatorio-<empresa>.html   <- so cite no texto
 ```
 
 E imprime as duas linhas: `Relatório gerado: ...html` e `Imagem gerada: ...png`.
@@ -92,7 +94,7 @@ E imprime as duas linhas: `Relatório gerado: ...html` e `Imagem gerada: ...png`
 > imagem/áudio/vídeo como media — um HTML falha com `Media failed`.
 >
 > ⚠️ **Nunca cite o caminho da pasta do projeto**
-> (`C:\Users\kerli\Curso de Agentes de IA - ...`) na mensagem. Ele tem espaços,
+> (`C:\Users\SEU-USUARIO\Curso de Agentes de IA - ...`) na mensagem. Ele tem espaços,
 > e a camada de anexo quebra o caminho no primeiro espaço.
 >
 > Se sair `AVISO: nao foi possivel gerar a imagem PNG`, diga isso ao Kerlison e
