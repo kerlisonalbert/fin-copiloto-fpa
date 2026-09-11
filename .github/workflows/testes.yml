@@ -1,0 +1,87 @@
+# Integração contínua — o badge de testes deixa de ser afirmação e vira fato.
+#
+# Roda a cada push e a cada pull request. Três garantias, nesta ordem:
+#   1. a suíte de testes passa em mais de uma versão de Python;
+#   2. os dados sintéticos publicados são EXATAMENTE o que o script gera
+#      (reprodutibilidade — o alicerce de qualquer auditoria);
+#   3. nenhuma planilha real escapou para o repositório.
+name: testes
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:        # permite disparar à mão pela aba Actions
+
+jobs:
+  testes:
+    name: pytest (Python ${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false      # se 3.10 quebrar, ainda quero ver o resultado do 3.12
+      matrix:
+        python: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+
+      - name: Instalar dependências (produção + desenvolvimento)
+        run: python -m pip install --upgrade pip -r requirements-dev.txt
+
+      - name: Rodar a suíte
+        run: python -m pytest -q
+
+  reprodutibilidade:
+    name: Dados sintéticos reprodutíveis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: python -m pip install --upgrade pip -r requirements.txt
+
+      # O gerador usa semente fixa (42). Regerar tem que devolver exatamente
+      # os mesmos arquivos que estão versionados. Se divergir, o dado publicado
+      # não corresponde mais ao código que diz tê-lo produzido — e isso, num
+      # projeto de finanças, é um problema de auditoria, não de estilo.
+      - name: Regerar e comparar com o que está versionado
+        run: |
+          python dados/gerar_sinteticos.py
+          git diff --exit-code -- dados/ \
+            || { echo "::error::Os dados versionados divergem da saída do gerador."; exit 1; }
+
+  governanca:
+    name: Nenhum dado real versionado
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # A pasta dados/minhas/ é onde entram planilhas reais do usuário e está
+      # no .gitignore. Só o .gitkeep e o LEIA-ME.md podem estar versionados.
+      # Esta checagem transforma a política em regra executável.
+      - name: Conferir a pasta dados/minhas/
+        run: |
+          intrusos=$(git ls-files 'dados/minhas/' \
+            | grep -v -E '^dados/minhas/(\.gitkeep|LEIA-ME\.md)$' || true)
+          if [ -n "$intrusos" ]; then
+            echo "::error::Arquivo indevido versionado em dados/minhas/:"
+            echo "$intrusos"
+            exit 1
+          fi
+          echo "OK — apenas .gitkeep e LEIA-ME.md."
+
+      - name: Conferir que nenhuma chave foi versionada
+        run: |
+          if git grep -nIE 'sk-ant-[A-Za-z0-9]{20,}|[0-9]{9,10}:AA[A-Za-z0-9_-]{30,}' -- . ; then
+            echo "::error::Possível chave de API ou token de bot versionado."
+            exit 1
+          fi
+          echo "OK — nenhuma chave encontrada."

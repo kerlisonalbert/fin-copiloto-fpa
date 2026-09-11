@@ -20,3 +20,6 @@ dados/minhas/*
 
 # capturas geradas em runtime (ficam no workspace do agente)
 relatorios/
+
+# scripts de uso unico (nao fazem parte do produto)
+finalizar.cmd
